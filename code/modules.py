@@ -258,7 +258,7 @@ class HAttention1D(nn.Module):
       return retval
     
     mask = einops.rearrange(mask, '... H (L P) D -> ... H L P D', P = 2)
-    x = x.masked_fill(1 - mask, 0.0)
+    x = x.masked_fill( (1 - mask).bool(), 0.0)
     
     agg = x.sum(dim=-2)
     numel=mask.sum(dim=-2)
