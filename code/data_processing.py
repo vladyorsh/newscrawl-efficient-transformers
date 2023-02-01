@@ -160,20 +160,3 @@ def refine_decoded_text(s):
   - Connect back the makeshift "--" em-dash
   '''
   return s.replace(' ##', '').replace('- -', '--')
-
-def get_base_collator(fast_tokenizer, padding='max_length', max_length=512):
-  '''
-  padding: { 'longest', 'max_length'}
-  max_length: int or None, will truncate if int
-  '''
-
-  def collate_fn(batch):
-    return fast_tokenizer(
-        batch,
-        padding=padding,
-        max_length=max_length,
-        truncation=True,
-        return_tensors='pt'
-    )
-  
-  return collate_fn

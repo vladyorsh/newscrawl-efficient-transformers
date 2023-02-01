@@ -44,6 +44,43 @@ class SineEmbeddings(nn.Module):
 
     return x
 
+class AttentionBlock(nn.Module):
+  def __init__(self, attention, hidden_dim, eps=1e-12, dropout_rate=0.1):
+    super().__init__()
+
+    self.pre_ln = nn.LayerNorm(hidden_dim, eps=eps)
+    self.att = attention
+    self.dropout = nn.Dropout(dropout_rate)
+
+  def forward(self, q, k=None, v=None, query_mask=None, key_mask=None):
+    x = self.pre_ln(q)
+    x = self.att(x, k, v, query_mask, key_mask)
+    x = self.dropout(x)
+
+    return q + x
+
+class FFN(nn.Module):
+  def __init__(self, hidden_dim, expansion_dim, activation = nn.GELU(), eps=1e-12, dropout_rate=0.1):
+    super().__init__()
+
+    self.expand = nn.Linear(hidden_dim, expansion_dim)
+    self.activation = activation
+    self.contract=nn.Linear(expansion_dim, hidden_dim)
+
+    self.layernorm = nn.LayerNorm(hidden_dim, eps=eps)
+    self.dropout = nn.Dropout(dropout_rate)
+
+  def forward(self, x):
+    y = self.layernorm(x)
+    
+    y = self.expand(y)
+    y = self.activation(y)
+    y = self.contract(y)
+    y = self.dropout(y)
+
+    x = x + y
+    return x
+
 class Attention(nn.Module):
   def __init__(self, hidden_dim, qkv_dim, num_heads, causal=False, eps=1e-12, dropout_rate=0.1):
     super(Attention, self).__init__()
@@ -125,6 +162,8 @@ class HAttention1D(nn.Module):
     self.v = nn.Linear(hidden_dim, qkv_dim, bias=False)
 
     self.o = nn.Linear(qkv_dim, hidden_dim)
+
+    #Proper dropout implementation is on the way
 
   def pad_to_power2(self, x, mask=None):
     seq_len = x.shape[-2]
