@@ -135,7 +135,7 @@ def train_tokenizer(tokenizer, iterator):
   trainer = WordPieceTrainer(
     vocab_size = get_config()['tokenizer_vocab'],
     show_progress = True,
-    special_tokens = [ '[UNK]', '[PAD]', '[MASK]', '[SEP]', '[EOS]', '[BOS]' ],
+    special_tokens = [ '[PAD]', '[UNK]', '[MASK]', '[SEP]', '[EOS]', '[BOS]' ],
   )
 
   tokenizer.train_from_iterator(iterator, trainer)

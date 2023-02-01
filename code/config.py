@@ -1,14 +1,27 @@
 def get_config():
   config = {
+    #Main parameters
     'blocks'      : 12,
     'hidden_dim'  : 768,
+    'qkv_dim'     : 768,
+    'expansion_dim' : 768,
     'num_heads'   : 12,
     'block_size'  : 16,
+
+    #Dropout and epsilon for clamping divisions
+    'attention_dropout_rate' : 0.1,
+    'hidden_dropout_rate' : 0.1,
+    'eps'         : 1e-12,
+
+    #Efficient variants parameters
+    'Nr'          : 16,
     
+    #Tokenization
     'tokenizer_vocab' : 30000,
     'tokenizer_train_files' : None, #Use training data
     'tokenizer_name' : 'h-trans.json',
     
+    #Data
     'train_files' : [
       'news-docs.2008.cs.filtered',
       'news-docs.2009.cs.filtered',
