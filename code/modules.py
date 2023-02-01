@@ -44,6 +44,26 @@ class SineEmbeddings(nn.Module):
 
     return x
 
+class Output(nn.Module):
+  def __init__(self, shared_embeddings=None, hidden_dim=None, vocab_size=None):
+    super().__init__()
+    self.shared_embeddings = shared_embeddings
+    self.hidden_dim = hidden_dim
+    self.vocab_size = vocab_size
+
+    if shared_embeddings is None:
+      self.lin = nn.Linear(hidden_dim, vocab_size, bias=True)
+    else:
+      self.bias = nn.Parameter(torch.zeros(self.shared_embeddings.weight.shape[0]), requires_grad=True)
+
+  def forward(self, x):
+    if self.shared_embeddings is not None:
+      x = torch.einsum('...h,vh->...v', x, self.shared_embeddings.weight)
+      x = x + self.bias
+    else:
+      x = self.lin(x)
+    return x
+
 class AttentionBlock(nn.Module):
   def __init__(self, attention, hidden_dim, eps=1e-12, dropout_rate=0.1):
     super().__init__()
@@ -72,13 +92,51 @@ class FFN(nn.Module):
 
   def forward(self, x):
     y = self.layernorm(x)
-    
+
     y = self.expand(y)
     y = self.activation(y)
     y = self.contract(y)
     y = self.dropout(y)
 
     x = x + y
+    return x
+
+class EncoderBlock(nn.Module):
+  def __init__(self, attention, hidden_dim, expansion_dim, hidden_dropout_rate, ffn_act=nn.GELU(), eps=1e-12):
+    super().__init__()
+
+    self.att_block = AttentionBlock(attention, hidden_dim, eps, hidden_dropout_rate)
+    self.ffn = FFN(hidden_dim, expansion_dim, ffn_act, eps, hidden_dropout_rate)
+
+  def forward(self, q, query_mask):
+    x = self.att_block(q, query_mask=query_mask, key_mask=query_mask)
+    x = self.ffn(x)
+    return x
+
+class DecoderBlock(nn.Module):
+  def __init__(self, causal_attention, cross_attention, hidden_dim, expansion_dim, hidden_dropout_rate, ffn_act=nn.GELU(), eps=1e-12):
+    super().__init__()
+
+    self.hidden_dim = hidden_dim
+    self.eps = eps
+    self.hidden_dropout_rate = hidden_dropout_rate
+
+    self.decoder_only == cross_attention is None
+
+    self.causal_attention = AttentionBlock(causal_attention, hidden_dim, eps, hidden_dropout_rate)
+    self.cross_attention  = None if self.decoder_only else AttentionBlock(cross_attention, hidden_dim, eps, hidden_dropout_rate)
+
+    self.ffn = FFN(hidden_dim, expansion_dim, ffn_act, eps, hidden_dropout_rate)
+
+  def update_with_cross_attention(self, attention):
+    self.decoder_only = False
+    self.cross_attention = AttentionBlock(attention, self.hidden_dim, self.eps, self.hidden_dropout_rate)
+
+  def forward(self, q, k, v, query_mask, key_mask):
+    x = self.att_block(q, query_mask=query_mask, key_mask=query_mask)
+    if not self.decoder_only:
+      x = self.att_block(x, k, v, query_mask, key_mask)
+    x = self.ffn(x)
     return x
 
 class Attention(nn.Module):
