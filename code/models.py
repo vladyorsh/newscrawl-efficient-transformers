@@ -16,7 +16,9 @@ class StaticAttrDict:
 class HTransformer1D(nn.Module):
   def __init__(self, config, is_encoder, padding_idx=0, word_embeddings=None):
     super().__init__()
-    self.config = StaticAttrDict(get_config())
+    config = StaticAttrDict(config)
+
+    self.config = config
     self.is_encoder = is_encoder
     
     self.word_embeddings = word_embeddings
@@ -25,7 +27,7 @@ class HTransformer1D(nn.Module):
     self.pos_embeddings  = SineEmbeddings(config.hidden_dim, config.eps, config.hidden_dropout_rate)
     
     self.blocks = []
-    for _ in range(config.num_blocks):
+    for _ in range(config.blocks):
       att = HAttention1D(
         config.hidden_dim, config.qkv_dim, config.num_heads,
         causal=not self.is_encoder, block_size = config.Nr, eps=config.eps

@@ -54,11 +54,11 @@ class Output(nn.Module):
     if shared_embeddings is None:
       self.lin = nn.Linear(hidden_dim, vocab_size, bias=True)
     else:
-      self.bias = nn.Parameter(torch.zeros(self.shared_embeddings.weight.shape[0]), requires_grad=True)
+      self.bias = nn.Parameter(torch.zeros(self.shared_embeddings.embs.weight.shape[0]), requires_grad=True)
 
   def forward(self, x):
     if self.shared_embeddings is not None:
-      x = torch.einsum('...h,vh->...v', x, self.shared_embeddings.weight)
+      x = torch.einsum('...h,vh->...v', x, self.shared_embeddings.embs.weight)
       x = x + self.bias
     else:
       x = self.lin(x)
@@ -108,7 +108,7 @@ class EncoderBlock(nn.Module):
     self.att_block = AttentionBlock(attention, hidden_dim, eps, hidden_dropout_rate)
     self.ffn = FFN(hidden_dim, expansion_dim, ffn_act, eps, hidden_dropout_rate)
 
-  def forward(self, q, query_mask):
+  def forward(self, q, k, v, query_mask, key_mask):
     x = self.att_block(q, query_mask=query_mask, key_mask=query_mask)
     x = self.ffn(x)
     return x
@@ -121,7 +121,7 @@ class DecoderBlock(nn.Module):
     self.eps = eps
     self.hidden_dropout_rate = hidden_dropout_rate
 
-    self.decoder_only == cross_attention is None
+    self.decoder_only = cross_attention is None
 
     self.causal_attention = AttentionBlock(causal_attention, hidden_dim, eps, hidden_dropout_rate)
     self.cross_attention  = None if self.decoder_only else AttentionBlock(cross_attention, hidden_dim, eps, hidden_dropout_rate)
@@ -133,9 +133,9 @@ class DecoderBlock(nn.Module):
     self.cross_attention = AttentionBlock(attention, self.hidden_dim, self.eps, self.hidden_dropout_rate)
 
   def forward(self, q, k, v, query_mask, key_mask):
-    x = self.att_block(q, query_mask=query_mask, key_mask=query_mask)
+    x = self.causal_attention(q, query_mask=query_mask, key_mask=query_mask)
     if not self.decoder_only:
-      x = self.att_block(x, k, v, query_mask, key_mask)
+      x = self.cross_attention(x, k, v, query_mask, key_mask)
     x = self.ffn(x)
     return x
 
@@ -337,6 +337,8 @@ class HAttention1D(nn.Module):
       key_mask = torch.ones(size=k.shape[:-1], device=device, dtype=torch.int32)
 
     q, k, v = self.q(q), self.k(k), self.v(v)
+
+    orig_len = q.shape[-2]
     
     q, query_mask = self.pad_to_power2(q, query_mask)
     k, key_mask   = self.pad_to_power2(k, key_mask)
@@ -438,7 +440,7 @@ class HAttention1D(nn.Module):
       A += A_last
 
     out = y / (A + self.eps).unsqueeze(-1)
-    out = self.join_heads(out[..., :q_len, :])
+    out = self.join_heads(out[..., :orig_len, :])
     out = self.o(out)
 
     return out

@@ -57,3 +57,4 @@ def get_config():
     ],
     'test_files' : [],
   }
+  return config
