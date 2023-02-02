@@ -34,7 +34,7 @@ def get_config():
     #Tokenization
     'tokenizer_vocab' : 30000,
     'tokenizer_train_files' : None, #Use training data
-    'tokenizer_name' : 'h-trans.json',
+    'tokenizer_name' : 'h-trans',
     
     #Data
     'train_files' : [

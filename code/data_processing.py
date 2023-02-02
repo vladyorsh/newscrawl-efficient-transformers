@@ -28,16 +28,16 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     for f_idx, filename in enumerate(self.filenames):
       print(f'Indexing {filename}...')
       
-      line_count = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
-      self.sizes.append(line_count)
-      
       try:
-        f = open(filename, 'r')
+        line_count = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
       except:
         self.files.append(None)
         self.sizes.append(0)
         self.offsets.append([])
         continue
+      self.sizes.append(line_count)
+      
+      f = open(filename, 'r')
       self.files.append(f)
       
       #Add document offsets
@@ -130,7 +130,7 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
 
 def get_tokenizer(path=None):
   if path is not None:
-    return Tokenizer.from_file(path)
+    return PreTrainedTokenizerFast.from_pretrained(path)
   
   model = WordPiece(unk_token='[UNK]')
   tokenizer = Tokenizer(model)
@@ -142,7 +142,7 @@ def get_tokenizer(path=None):
 def train_tokenizer(tokenizer, iterator):
   trainer = WordPieceTrainer(
     vocab_size = get_config().tokenizer_vocab,
-    show_progress = True,
+    show_progress = False,
     special_tokens = [ '[PAD]', '[UNK]', '[MASK]', '[SEP]', '[EOS]', '[BOS]' ],
   )
 
