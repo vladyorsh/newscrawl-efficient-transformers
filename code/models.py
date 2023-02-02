@@ -70,8 +70,8 @@ class CombinedModel(nn.Module):
     for block in self.decoder.blocks: #TODO: Replace with other
       block.update_with_cross_attention(
         Attention(
-          config.hidden_dim, config.qkv_dim, config.num_heads,
-          causal=not self.is_encoder, eps=config.eps
+          self.config.hidden_dim, self.config.qkv_dim, self.config.num_heads,
+          causal=False, eps=self.config.eps
         )
       )
 
