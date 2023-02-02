@@ -196,7 +196,7 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
 
   def collate_fn(batch):
     basic_col = get_basic_collator(fast_tokenizer, padding, max_length)
-    inputs, labels = basic_col(batch), basic_col(batch) #TODO: Find a better way to clone
+    inputs = basic_col(batch)
 
     special_tokens_mask = inputs.special_tokens_mask
     mask_token = fast_tokenizer.mask_token_id
@@ -206,22 +206,19 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
       mask = mask * (1 - special_tokens_mask)
       mask = mask.bool()
 
-      labels.input_ids.masked_fill_(mask, mask_token) #TODO: Make instead 80% mask, 10% random and 10% intact
-      
-      inputs['labels'] = labels.input_ids
+      inputs['labels'] = inputs.input_ids.masked_fill(mask, mask_token)
       inputs['mlm_mask'] = mask.int()
     else:
+      original_inputs = torch.clone(inputs.input_ids)
       #Causal masking
       input_lengths = inputs.attention_mask.sum(dim=-1) - 1
       #Transform Ids
-      inputs.input_ids[:, input_lengths] = pad_token
-      inputs.input_ids = inputs.input_ids[:, :-1]
+      inputs['input_ids'][:, input_lengths] = pad_token
+      inputs['input_ids'] = inputs.input_ids[:, :-1]
       #Transform attention mask
-      inputs.attention_mask[:, input_lengths] = 0
-      inputs.attention_mask = inputs.attention_mask[:, :-1]
+      inputs['attention_mask'] = inputs.attention_mask[:, 1:]
       #Transform outputs and assign them to inputs dict
-      labels.input_ids = labels.input_ids[:, 1:]
-      inputs['labels'] = labels.input_ids
+      inputs['labels'] = original_inputs[:, 1:]
 
     inputs.pop('special_tokens_mask')
     return inputs
