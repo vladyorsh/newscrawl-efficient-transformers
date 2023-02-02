@@ -20,6 +20,8 @@ def get_config():
     'num_heads'   : 12,
     'block_size'  : 16,
 
+    'mlm_mask_prob' : 0.15,
+
     #Dropout and epsilon for clamping divisions
     'attention_dropout_rate' : 0.1,
     'hidden_dropout_rate' : 0.1,

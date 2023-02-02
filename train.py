@@ -1,6 +1,6 @@
-from code.config import *
-from code.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer
-from code.models import HTransformer1D
+from modeling.config import *
+from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer
+from modeling.models import HTransformer1D
 
 import os
 import argparse
