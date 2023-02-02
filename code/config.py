@@ -1,5 +1,17 @@
+class StaticAttrDict:
+  def __init__(self, d):
+    self.d = d
+  
+  def __getattr__(self, name):
+    return self.d.get(name, None)
+
+  def __getitem__(self, key):
+    return self.d[key]
+
 def get_config():
   config = {
+    'root_dir' : '.',
+
     #Main parameters
     'blocks'      : 12,
     'hidden_dim'  : 768,
@@ -12,6 +24,9 @@ def get_config():
     'attention_dropout_rate' : 0.1,
     'hidden_dropout_rate' : 0.1,
     'eps'         : 1e-12,
+
+    #Combined model
+    'use_embeddings' : 'decoder',
 
     #Efficient variants parameters
     'Nr'          : 16,
@@ -57,4 +72,4 @@ def get_config():
     ],
     'test_files' : [],
   }
-  return config
+  return StaticAttrDict(config)

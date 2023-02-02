@@ -1,23 +1,11 @@
 import torch
 import torch.nn as nn
-from config import get_config
-from modules import *
-
-class StaticAttrDict:
-  def __init__(self, d):
-    self.d = d
-  
-  def __getattr__(self, name):
-    return self.d.get(name, None)
-
-  def __getitem__(self, key):
-    return self.d[key]
+from .modules import *
 
 class HTransformer1D(nn.Module):
   def __init__(self, config, is_encoder, padding_idx=0, word_embeddings=None):
     super().__init__()
-    config = StaticAttrDict(config)
-
+    
     self.config = config
     self.is_encoder = is_encoder
     

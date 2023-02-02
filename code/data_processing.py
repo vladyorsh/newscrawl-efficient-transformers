@@ -3,7 +3,7 @@ import subprocess
 import linecache
 import base64
 
-from config import get_config
+from .config import get_config
 
 from tokenizers import normalizers, pre_tokenizers, models, Tokenizer
 
@@ -31,7 +31,13 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
       line_count = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
       self.sizes.append(line_count)
       
-      f = open(filename, 'r')
+      try:
+        f = open(filename, 'r')
+      except:
+        self.files.append(None)
+        self.sizes.append(0)
+        self.offsets.append([])
+        continue
       self.files.append(f)
       
       #Add document offsets
@@ -119,12 +125,14 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
 
   def __del__(self):
     for f in self.files:
-      f.close()
+      if f is not None:
+        f.close()
 
 def get_tokenizer(path=None):
   if path is not None:
     return Tokenizer.from_file(path)
   
+  model = WordPiece(unk_token='[UNK]')
   tokenizer = Tokenizer(model)
   tokenizer.normalizer = normalizers.Sequence([ NFD() ])
   tokenizer.pre_tokenizer = pre_tokenizers.Sequence([ BertPreTokenizer() ])
@@ -133,7 +141,7 @@ def get_tokenizer(path=None):
 
 def train_tokenizer(tokenizer, iterator):
   trainer = WordPieceTrainer(
-    vocab_size = get_config()['tokenizer_vocab'],
+    vocab_size = get_config().tokenizer_vocab,
     show_progress = True,
     special_tokens = [ '[PAD]', '[UNK]', '[MASK]', '[SEP]', '[EOS]', '[BOS]' ],
   )
