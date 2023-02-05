@@ -132,3 +132,18 @@ if test_dataset:
   test_dataset.doc_split = False
 
 short_trainer.train()
+
+long_trainer = Trainer(
+  model,
+  long_training_args,
+  data_collator=long_collator,
+  train_dataset=train_dataset,
+  eval_dataset =valid_dataset,
+)
+
+train_dataset.doc_split = True
+valid_dataset.doc_split = True
+if test_dataset:
+  test_dataset.doc_split = True
+
+long_trainer.train()
