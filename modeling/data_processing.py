@@ -121,7 +121,7 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
 
       line = line[sent_idx:end_idx]
       #Additionally return offsets so we can tell one document sents from another
-      return line, (file_idx, line_idx, sent_idx)
+      return line#, (file_idx, line_idx, sent_idx)
 
   def __del__(self):
     for f in self.files:
@@ -171,7 +171,7 @@ def refine_decoded_text(s):
 
 def get_basic_collator(fast_tokenizer, padding='max_length', max_length=512):
   '''
-  padding: { 'longest', 'max_length'}
+  padding: { 'longest', 'max_length' }
   max_length: int or None, will truncate if int
   '''
 
@@ -190,7 +190,7 @@ def get_basic_collator(fast_tokenizer, padding='max_length', max_length=512):
 
 def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_prob=0.15):
   '''
-  padding: { 'longest', 'max_length'}
+  padding: { 'longest', 'max_length' }
   max_length: int or None, will truncate if int
   '''
 
