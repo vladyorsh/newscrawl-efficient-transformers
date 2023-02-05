@@ -225,7 +225,8 @@ class HAttention1D(nn.Module):
 
   def pad_to_power2(self, x, mask=None):
     seq_len = x.shape[-2]
-    new_len = 2 ** math.ceil(math.log2(seq_len))
+    new_len = max(2 ** math.ceil(math.log2(seq_len)), 2 * self.block_size)
+    #Input must be of 2 blocks long at least
     
     pad_size = new_len - seq_len
     if pad_size:
