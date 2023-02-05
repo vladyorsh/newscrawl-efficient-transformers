@@ -72,12 +72,12 @@ for device in range(torch.cuda.device_count()):
   if t < min_memory_available:
     min_memory_available = t
 
-short_batch_size = int(min_memory_available / 0.25) #0.25GB per 1 sample of length ~128 (e.g. sentence)
+short_batch_size = int(min_memory_available / 1.0) #1GB per 1 sample of length ~256 (e.g. sentence)
 long_batch_size  = round(short_batch_size / 10) #Let it be 10x less
 
 #Extend to power of two
-short_batch_size = max(1, 2 ** round(math.log2(short_batch_size)))
-long_batch_size  = max(1, 2 ** round(math.log2(long_batch_size)))
+short_batch_size = max(2, 2 ** round(math.log2(short_batch_size)))
+long_batch_size  = max(2, 2 ** round(math.log2(long_batch_size)))
 
 print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
