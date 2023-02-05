@@ -49,6 +49,34 @@ class HTransformer1D(nn.Module):
     q = self.out(q)
     return q
 
+class HFWrapper(nn.Module):
+  #Block loss for 'ignore_indices', propagate loss only through 'mask_index' tokens
+  def __init__(self, model):
+    super().__init__()
+    self.model = model
+  
+  def compute_loss(self, logits, labels, mask=None):
+    vocab_size = logits.shape[-1]
+    if mask is not None:
+      labels = labels.masked_fill(~mask, -100)
+
+    return nn.CrossEntropyLoss()(logits.view(-1, vocab_size), labels.view(-1))
+
+  def forward(self, input_ids, attention_mask, decoder_input_ids=None, decoder_attention_mask=None, encoder_outputs=None, labels=None, ** kwargs):
+    logits = self.model(
+      q = input_ids,
+      k = encoder_outputs,
+      v = encoder_outputs,
+      query_mask=attention_mask,
+      key_mask=decoder_attention_mask,
+    )
+    retval = { 'logits' : logits }
+    if labels is not None:
+      #Assuming that ignored tokens are already masked with -100
+      retval.update({ 'loss' : self.compute_loss(logits, labels) })
+    return retval
+
+
 class CombinedModel(nn.Module):
   def __init__(self, encoder_model, decoder_model, padding_idx=0):
     self.encoder = encoder_model

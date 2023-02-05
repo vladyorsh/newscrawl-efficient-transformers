@@ -206,8 +206,9 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
       mask = mask * (1 - special_tokens_mask)
       mask = mask.bool()
 
-      inputs['labels'] = inputs.input_ids.masked_fill(mask, mask_token)
-      inputs['mlm_mask'] = mask.int()
+      #Assign -100 to pad or non-[MASK] tokens
+      inputs['labels']   =inputs.input_ids.masked_fill(~mask, -100)
+      inputs['input_ids']=inputs.input_ids.masked_fill(mask, mask_token)
     else:
       original_inputs = torch.clone(inputs.input_ids)
       #Causal masking
@@ -219,6 +220,8 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
       inputs['attention_mask'] = inputs.attention_mask[:, 1:]
       #Transform outputs and assign them to inputs dict
       inputs['labels'] = original_inputs[:, 1:]
+      #Mask pad tokens with -100
+      inputs.labels.masked_fill_(~inputs.attention_mask.bool(), -100)
 
     inputs.pop('special_tokens_mask')
     return inputs
