@@ -146,10 +146,14 @@ valid_dataset.doc_split = False
 if test_dataset:
   test_dataset.doc_split = False
 
-if args.short is None:
-  short_trainer.train()
+if args.long is None:
+  print('*** Commencing short pretraining ***')
+  if args.short is None:
+    short_trainer.train()
+  else:
+    short_trainer.train(args.short)
 else:
-  short_trainer.train(args.short)
+  print('*** Long checkpoint found, skipping short pretraining ***')
 
 TrainerClass = Trainer
 if config.long_eval_steps:
@@ -169,6 +173,7 @@ valid_dataset.doc_split = True
 if test_dataset:
   test_dataset.doc_split = True
 
+print('*** Commencing long pretraining ***')
 if args.long is None:
   long_trainer.train()
 else:
