@@ -81,12 +81,13 @@ class MyTrainer(Trainer):
 
         batch_size = dataloader.batch_size
         
+        num_examples = self.num_examples(dataloader)
         if hasattr(self.args, 'max_eval_steps'):
-          dataloader = truncate_iterable(dataloader, self.args.max_eval_steps)
+          num_examples = min(dataloader.batch_size * self.args.max_eval_steps, num_examples)
 
         logger.info(f"***** Running {description} *****")
         if isinstance(dataloader.dataset, collections.abc.Sized):
-            logger.info(f"  Num examples = {self.num_examples(dataloader)}")
+            logger.info(f"  Num examples = {num_examples}")
         else:
             logger.info("  Num examples: Unknown")
         logger.info(f"  Batch size = {batch_size}")
@@ -94,7 +95,6 @@ class MyTrainer(Trainer):
         model.eval()
 
         self.callback_handler.eval_dataloader = dataloader
-        # Truncate loader for correct number of samples computation
 
         if is_torch_tpu_available():
             dataloader = pl.ParallelLoader(dataloader, [self.args.device]).per_device_loader(self.args.device)
@@ -116,8 +116,8 @@ class MyTrainer(Trainer):
         observed_num_examples = 0
         # Main evaluation loop
         for step, inputs in enumerate(dataloader):
-            #if hasattr(self.args, 'max_eval_steps') and (step > self.args.max_eval_steps):
-            #  break
+            if hasattr(self.args, 'max_eval_steps') and (step > self.args.max_eval_steps):
+              break
             # Update the observed num examples
             observed_batch_size = find_batch_size(inputs)
             if observed_batch_size is not None:
