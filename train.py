@@ -100,6 +100,7 @@ common_args = {
   'learning_rate' : config.base_lr, 'weight_decay' : config.wd,
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
+  'load_best_model_at_end' : True,
 }
 
 short_training_args = TrainingArguments(

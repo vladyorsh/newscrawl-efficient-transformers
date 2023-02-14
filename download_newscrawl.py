@@ -34,10 +34,10 @@ for lang in langs:
         if year not in years:
           continue
       link = 'https://' + link.split('@')[1]
-      os.system(f"wget -c -P \"{target}\" --user {user} --password {password} \"{link}\"")
+      os.system(f"wget -cN -P \"{target}\" --user {user} --password {password} \"{link}\"")
 
 if unpack:
   for f in os.listdir(target):
       if f.endswith('.gz'):
         f = os.path.join(target, f)
-        os.system(f'gzip -d {f}')
+        os.system(f'gzip -df {f}')
