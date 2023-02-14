@@ -1,6 +1,7 @@
 from modeling.config import *
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper
+from modeling.trainer import MyTrainer
 
 import os
 import math
@@ -11,6 +12,8 @@ from transformers import Trainer, TrainingArguments
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m','--model', help='Train encoder or decoder', required=False, default='encoder')
+parser.add_argument('-c','--short', help='Path to short training checkpoint to continue', required=False, default=None)
+parser.add_argument('-C','--long', help='Path to long training checkpoint to continue', required=False, default=None)
 args = parser.parse_args()
 
 config = get_config()
@@ -85,11 +88,11 @@ print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sent
 model = HTransformer1D(config, is_encoder, tokenizer.pad_token_id, None)
 model = HFWrapper(model)
 short_collator = get_lm_collator(
-  tokenizer, padding='longest', max_length=512,
+  tokenizer, padding='longest', max_length=config.short_max_len,
   mask_prob=0.0 if not is_encoder else config.mlm_mask_prob
 )
 long_collator = get_lm_collator(
-  tokenizer, padding='longest', max_length=None,
+  tokenizer, padding='longest', max_length=config.long_max_len,
   mask_prob=0.0 if not is_encoder else config.mlm_mask_prob
 )
 
@@ -101,6 +104,7 @@ common_args = {
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
   'load_best_model_at_end' : True,
+  'eval_accumulation_steps' : config.eval_accumulation_steps,
 }
 
 short_training_args = TrainingArguments(
@@ -110,6 +114,8 @@ short_training_args = TrainingArguments(
   warmup_steps=config.short_warmup_steps,
   ** common_args,
 )
+if config.short_eval_steps:
+  short_training_args.max_eval_steps=config.short_eval_steps
 
 long_training_args = TrainingArguments(
   per_device_train_batch_size=long_batch_size,
@@ -118,8 +124,10 @@ long_training_args = TrainingArguments(
   warmup_steps=config.long_warmup_steps,
   ** common_args,
 )
+if config.long_eval_steps:
+  long_training_args.max_eval_steps=config.long_eval_steps
 
-short_trainer = Trainer(
+short_trainer = MyTrainer(
   model,
   short_training_args,
   data_collator=short_collator,
@@ -132,9 +140,12 @@ valid_dataset.doc_split = False
 if test_dataset:
   test_dataset.doc_split = False
 
-short_trainer.train()
+if args.short is None:
+  short_trainer.train()
+else:
+  short_trainer.train(args.short)
 
-long_trainer = Trainer(
+long_trainer = MyTrainer(
   model,
   long_training_args,
   data_collator=long_collator,
@@ -147,4 +158,7 @@ valid_dataset.doc_split = True
 if test_dataset:
   test_dataset.doc_split = True
 
-long_trainer.train()
+if args.long is None:
+  long_trainer.train()
+else:
+  long_trainer.train(args.long)
