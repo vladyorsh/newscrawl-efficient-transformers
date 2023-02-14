@@ -10,6 +10,10 @@ import torch
 
 from transformers import Trainer, TrainingArguments
 
+from transformers.utils import logging
+
+logging.set_verbosity_error()
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-m','--model', help='Train encoder or decoder', required=False, default='encoder')
 parser.add_argument('-c','--short', help='Path to short training checkpoint to continue', required=False, default=None)
@@ -76,7 +80,7 @@ for device in range(torch.cuda.device_count()):
     min_memory_available = t
 
 short_batch_size = int(min_memory_available / 1.0) #1GB per 1 sample of length ~256 (e.g. sentence)
-long_batch_size  = round(short_batch_size / 10) #Let it be 10x less
+long_batch_size  = round(short_batch_size / 20) #Let it be 20x less
 
 #Extend to power of two
 short_batch_size = max(2, 2 ** round(math.log2(short_batch_size)))
@@ -97,7 +101,6 @@ long_collator = get_lm_collator(
 )
 
 common_args = {
-  'output_dir' : config.root_dir,
   'do_train' : True, 'do_eval' : True, 'do_predict' : True if test_dataset else False,
   'evaluation_strategy' : 'steps', 'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'learning_rate' : config.base_lr, 'weight_decay' : config.wd,
@@ -105,6 +108,7 @@ common_args = {
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
   'load_best_model_at_end' : True,
   'eval_accumulation_steps' : config.eval_accumulation_steps,
+  'overwrite_output_dir' : True,
 }
 
 short_training_args = TrainingArguments(
@@ -112,22 +116,24 @@ short_training_args = TrainingArguments(
   per_device_eval_batch_size=4 * short_batch_size,
   num_train_epochs=config.short_train_epochs, max_steps=config.short_max_steps,
   warmup_steps=config.short_warmup_steps,
+  output_dir=os.path.join(config.root_dir, config.short_subdir),
   ** common_args,
 )
-if config.short_eval_steps:
-  short_training_args.max_eval_steps=config.short_eval_steps
-
 long_training_args = TrainingArguments(
   per_device_train_batch_size=long_batch_size,
   per_device_eval_batch_size=4 * long_batch_size,
   num_train_epochs=config.long_train_epochs, max_steps=config.long_max_steps,
   warmup_steps=config.long_warmup_steps,
+  output_dir=os.path.join(config.root_dir, config.long_subdir),
   ** common_args,
 )
-if config.long_eval_steps:
-  long_training_args.max_eval_steps=config.long_eval_steps
 
-short_trainer = MyTrainer(
+TrainerClass = Trainer
+if config.short_eval_steps:
+  short_training_args.max_eval_steps=config.short_eval_steps
+  TrainerClass = MyTrainer
+
+short_trainer = TrainerClass(
   model,
   short_training_args,
   data_collator=short_collator,
@@ -145,7 +151,12 @@ if args.short is None:
 else:
   short_trainer.train(args.short)
 
-long_trainer = MyTrainer(
+TrainerClass = Trainer
+if config.long_eval_steps:
+  long_training_args.max_eval_steps=config.long_eval_steps
+  TrainerClass = MyTrainer
+
+long_trainer = TrainerClass(
   model,
   long_training_args,
   data_collator=long_collator,
