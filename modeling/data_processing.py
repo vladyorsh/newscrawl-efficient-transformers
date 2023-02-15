@@ -3,8 +3,6 @@ import subprocess
 import linecache
 import base64
 
-from .config import get_config
-
 from tokenizers import normalizers, pre_tokenizers, models, Tokenizer
 
 from tokenizers.normalizers import NFD #BertNormalizer
@@ -139,9 +137,9 @@ def get_tokenizer(path=None):
 
   return tokenizer
 
-def train_tokenizer(tokenizer, iterator):
+def train_tokenizer(tokenizer, iterator, config):
   trainer = WordPieceTrainer(
-    vocab_size = get_config().tokenizer_vocab,
+    vocab_size = config.tokenizer_vocab,
     show_progress = False,
     special_tokens = [ '[PAD]', '[UNK]', '[MASK]', '[SEP]', '[EOS]', '[BOS]' ],
   )

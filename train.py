@@ -1,4 +1,4 @@
-from modeling.config import *
+from modeling.debug_config import *
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper
 from modeling.trainer import MyTrainer
@@ -9,7 +9,6 @@ import argparse
 import torch
 
 from transformers import Trainer, TrainingArguments
-
 from transformers.utils import logging
 
 logging.set_verbosity_error()
@@ -63,7 +62,7 @@ except:
     tok_train_data = NewsCrawlDataset(
         extend_with_rootdir(config.tokenizer_train_files), doc_split=True
     )
-  train_tokenizer(tokenizer, tok_train_data)
+  train_tokenizer(tokenizer, tok_train_data, config)
   tokenizer = make_fast_tokenizer(tokenizer)
   tokenizer.save_pretrained(tok_path)
 
