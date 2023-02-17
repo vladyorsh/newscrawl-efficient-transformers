@@ -70,7 +70,7 @@ def get_config():
       'news-docs.2008.en.filtered',
     ],
     'valid_files' : [
-      'news-docs.2008.cs.filtered
+      'news-docs.2008.cs.filtered',
       'news-docs.2007.en.filtered',
     ],
     'test_files' : [],
