@@ -16,6 +16,7 @@ def get_config():
 
     #Main parameters
     'blocks'      : 12,
+    'repeats'     : 1,
     'hidden_dim'  : 768,
     'qkv_dim'     : 768,
     'expansion_dim' : 3072,

@@ -15,7 +15,8 @@ def get_config():
     'long_subdir' : 'long',
 
     #Main parameters
-    'blocks'      : 12,
+    'blocks'      : 1,
+    'repeats'     : 12,
     'hidden_dim'  : 768,
     'qkv_dim'     : 768,
     'expansion_dim' : 3072,
@@ -27,7 +28,7 @@ def get_config():
     #Memory control
     'eval_accumulation_steps' : 1,
     'short_max_len' : 512,
-    'long_max_len' : int(2 ** 14),
+    'long_max_len' : int(2 ** 15),
 
     #Dropout and epsilon for clamping divisions
     'attention_dropout_rate' : 0.1,
@@ -40,7 +41,7 @@ def get_config():
     'wd' : 0.0,
 
     'short_train_epochs' : 3.0,
-    'short_max_steps' : 1000,   #If set, overrides epochs
+    'short_max_steps' : 100,   #If set, overrides epochs
     'short_eval_steps' : 10000, #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : 500,   #If set, overrides epochs

@@ -34,6 +34,7 @@ class HTransformer1D(nn.Module):
         )
       self.blocks.append(block)
 
+    self.blocks = self.blocks * config.repeats
     self.blocks = nn.ModuleList(self.blocks)
     self.out = Output(self.word_embeddings)
 
