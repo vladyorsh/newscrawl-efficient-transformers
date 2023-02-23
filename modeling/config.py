@@ -28,7 +28,7 @@ def get_config():
     #Memory control
     'eval_accumulation_steps' : 1,
     'short_max_len' : 512,
-    'long_max_len' : int(2 ** 14),
+    'long_max_len' : None,
 
     #Dropout and epsilon for clamping divisions
     'attention_dropout_rate' : 0.1,
@@ -36,19 +36,19 @@ def get_config():
     'eps'         : 1e-12,
 
     #Training params
-    'grad_accumulation_steps' : 8,
-    'base_lr' : 5e-5,
-    'wd' : 0.0,
+    'full_batch_size' : 256,
+    'base_lr' : 1e-4,
+    'wd' : 0.01,
 
     'short_train_epochs' : 3.0,
-    'short_max_steps' : int(1e6),   #If set, overrides epochs
+    'short_max_steps' : int(8e5),   #If set, overrides epochs
     'short_eval_steps' : None, #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : int(2e5),   #If set, overrides epochs
     'long_eval_steps' : None, #If set, overrides maximum amount of evaluation steps
     
-    'short_warmup_steps' : 0, #Linear warmup steps
-    'long_warmup_steps' : 0,
+    'short_warmup_steps' : int(1e5), #Linear warmup steps
+    'long_warmup_steps' : int(2.5e4),
 
     'eval_steps' : 500, #Log, save and eval every ... steps
 

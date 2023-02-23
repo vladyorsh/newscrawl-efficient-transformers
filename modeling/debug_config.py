@@ -26,7 +26,7 @@ def get_config():
     'mlm_mask_prob' : 0.15,
     
     #Memory control
-    'eval_accumulation_steps' : 1,
+    'full_batch_size' : 256,
     'short_max_len' : 512,
     'long_max_len' : int(2 ** 15),
 
