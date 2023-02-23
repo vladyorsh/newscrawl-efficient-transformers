@@ -88,7 +88,10 @@ long_batch_size  = round(short_batch_size / 20) #Let it be 20x less
 
 #Extend to power of two
 short_batch_size = max(2, 2 ** round(math.log2(short_batch_size)))
-long_batch_size  = max(2, 2 ** round(math.log2(long_batch_size)))
+long_batch_size  = max(1, 2 ** round(math.log2(long_batch_size)))
+
+short_accum_steps = config.full_batch_size // short_batch_size
+long_accum_steps = config.full_batch_size // long_batch_size
 
 print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
@@ -119,7 +122,6 @@ common_args = {
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
   'load_best_model_at_end' : True,
-  'eval_accumulation_steps' : config.eval_accumulation_steps,
   'overwrite_output_dir' : True,
 }
 
@@ -129,6 +131,7 @@ short_training_args = TrainingArguments(
   num_train_epochs=config.short_train_epochs, max_steps=config.short_max_steps,
   warmup_steps=config.short_warmup_steps,
   output_dir=os.path.join(config.root_dir, config.short_subdir),
+  gradient_accumulation_steps=short_accum_steps,
   ** common_args,
 )
 long_training_args = TrainingArguments(
@@ -137,6 +140,7 @@ long_training_args = TrainingArguments(
   num_train_epochs=config.long_train_epochs, max_steps=config.long_max_steps,
   warmup_steps=config.long_warmup_steps,
   output_dir=os.path.join(config.root_dir, config.long_subdir),
+  gradient_accumulation_steps=long_accum_steps,
   ** common_args,
 )
 
