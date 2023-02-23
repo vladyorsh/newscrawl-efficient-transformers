@@ -117,7 +117,8 @@ long_collator = get_lm_collator(
 
 common_args = {
   'do_train' : True, 'do_eval' : True, 'do_predict' : True if test_dataset else False,
-  'evaluation_strategy' : 'steps', 'gradient_accumulation_steps' : config.grad_accumulation_steps,
+  'evaluation_strategy' : 'steps',
+  #'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'learning_rate' : config.base_lr, 'weight_decay' : config.wd,
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,

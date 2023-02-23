@@ -42,7 +42,7 @@ def get_config():
 
     'short_train_epochs' : 3.0,
     'short_max_steps' : 100,   #If set, overrides epochs
-    'short_eval_steps' : 10000, #If set, overrides maximum amount of evaluation steps
+    'short_eval_steps' : 10, #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : 500,   #If set, overrides epochs
     'long_eval_steps' : 5000, #If set, overrides maximum amount of evaluation steps
