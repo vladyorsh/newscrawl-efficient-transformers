@@ -26,7 +26,7 @@ def get_config():
     'mlm_mask_prob' : 0.15,
     
     #Memory control
-    'full_batch_size' : 256,
+    'eval_accumulation_steps' : 1,
     'short_max_len' : 512,
     'long_max_len' : None,
 
@@ -36,7 +36,7 @@ def get_config():
     'eps'         : 1e-12,
 
     #Training params
-    'grad_accumulation_steps' : 8,
+    'full_batch_size' : 256,
     'base_lr' : 1e-4,
     'wd' : 0.01,
 
@@ -100,5 +100,9 @@ def get_config():
       'news-docs.2021.en.filtered',
     ],
     'test_files' : [],
+
+    'train_processed_path' : 'train.b',
+    'valid_processed_path' : 'valid.b',
+    'test_processed_path' : 'test.b',
   }
   return StaticAttrDict(config)

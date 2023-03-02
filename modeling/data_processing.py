@@ -2,6 +2,7 @@ import torch
 import subprocess
 import linecache
 import base64
+import pickle
 
 from tokenizers import normalizers, pre_tokenizers, models, Tokenizer
 
@@ -57,6 +58,18 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
       self.offsets.append(offsets)
 
     print('Dataset created,', len(self), 'lines')
+
+  def save(self, path):
+    with open(path, 'wb') as f:
+      pickle.dump((self.filenames, self.sizes, self.offsets, self.sentence_offsets))
+
+  @staticmethod
+  def load(path):
+    d = NewsCrawlDataset([])
+    with open(path, 'rb') as f:
+      d.filenames, d.sizes, d.offsets, d.sentence_offsets = pickle.load(f)
+    print('Dataset loaded,', len(d), 'lines')
+    return d
 
   def __len__(self):
     size = sum(self.sizes) if self.doc_split else len(self.sentence_offsets)
