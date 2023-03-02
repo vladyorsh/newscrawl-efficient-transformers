@@ -26,15 +26,6 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     for f_idx, filename in enumerate(self.filenames):
       print(f'Indexing {filename}...')
       
-      try:
-        line_count = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
-      except:
-        self.files.append(None)
-        self.sizes.append(0)
-        self.offsets.append([])
-        continue
-      self.sizes.append(line_count)
-      
       f = open(filename, 'r')
       self.files.append(f)
       
@@ -61,7 +52,8 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
           self.sentence_offsets.append( (f_idx, l_idx, sent_idx) )
 
       offsets.pop()
-
+      
+      self.sizes.append(len(offsets))
       self.offsets.append(offsets)
 
     print('Dataset created,', len(self), 'lines')
