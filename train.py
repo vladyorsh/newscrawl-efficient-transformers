@@ -1,4 +1,5 @@
-from modeling.debug_config import *
+#from modeling.debug_config import *
+from modeling.config import *
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper
 from modeling.trainer import MyTrainer
@@ -11,7 +12,7 @@ import torch
 from transformers import Trainer, TrainingArguments
 from transformers.utils import logging
 
-logging.set_verbosity_error()
+#logging.set_verbosity_error()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m','--model', help='Train encoder or decoder', required=False, default='encoder')
@@ -117,7 +118,8 @@ long_collator = get_lm_collator(
 
 common_args = {
   'do_train' : True, 'do_eval' : True, 'do_predict' : True if test_dataset else False,
-  'evaluation_strategy' : 'steps', 'gradient_accumulation_steps' : config.grad_accumulation_steps,
+  'evaluation_strategy' : 'steps',
+  #'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'learning_rate' : config.base_lr, 'weight_decay' : config.wd,
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
