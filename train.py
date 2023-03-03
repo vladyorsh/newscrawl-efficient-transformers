@@ -27,7 +27,7 @@ def extend_with_rootdir(paths):
   if isinstance(paths, list) or isinstance(paths, tuple):
     return [ os.path.join(config.root_dir, p) for p in paths ]
   else:
-    return os.path.join(config.root, paths)
+    return os.path.join(config.root_dir, paths)
 
 #*** GET DATA ***
 

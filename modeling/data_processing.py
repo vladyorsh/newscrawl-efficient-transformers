@@ -28,8 +28,7 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
       print(f'Indexing {filename}...')
       
       f = open(filename, 'r')
-      self.files.append(f)
-      
+        
       #Add document offsets
       offsets = [ 0 ]
       line = True
@@ -56,8 +55,13 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
       
       self.sizes.append(len(offsets))
       self.offsets.append(offsets)
+      f.close()
 
+    self.open()
     print('Dataset created,', len(self), 'lines')
+
+  def open(self):
+    self.files = [ open(filename, 'r') for filename in self.filenames ]
 
   def save(self, path):
     with open(path, 'wb') as f:
@@ -68,6 +72,7 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     d = NewsCrawlDataset([])
     with open(path, 'rb') as f:
       d.filenames, d.sizes, d.offsets, d.sentence_offsets = pickle.load(f)
+    d.open()
     print('Dataset loaded,', len(d), 'lines')
     return d
 
