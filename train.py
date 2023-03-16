@@ -1,4 +1,5 @@
-from modeling.debug_config import *
+#from modeling.debug_config import *
+from modeling.config import *
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper
 from modeling.trainer import MyTrainer
@@ -11,7 +12,7 @@ import torch
 from transformers import Trainer, TrainingArguments
 from transformers.utils import logging
 
-logging.set_verbosity_error()
+#logging.set_verbosity_error()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m','--model', help='Train encoder or decoder', required=False, default='encoder')
@@ -23,24 +24,44 @@ config = get_config()
 is_encoder = args.model.lower() == 'encoder'
 
 def extend_with_rootdir(paths):
-  return [ os.path.join(config.root_dir, p) for p in paths ]
+  if isinstance(paths, list) or isinstance(paths, tuple):
+    return [ os.path.join(config.root_dir, p) for p in paths ]
+  else:
+    return os.path.join(config.root_dir, paths)
 
 #*** GET DATA ***
 
 print('Parsing train dataset')
-train_dataset = NewsCrawlDataset(
+train_path = extend_with_rootdir(config.train_processed_path)
+if os.path.exists(train_path):
+  train_dataset = NewsCrawlDataset.load(train_path)
+else:
+  train_dataset = NewsCrawlDataset(
     extend_with_rootdir(config.train_files), doc_split=True
-)
+  )
+  train_dataset.save(train_path)
+
 print('Parsing valid dataset')
-valid_dataset = NewsCrawlDataset(
-    extend_with_rootdir(config.valid_files), doc_split=True
-)
+valid_path = extend_with_rootdir(config.valid_processed_path)
+if os.path.exists(valid_path):
+  valid_dataset = NewsCrawlDataset.load(valid_path)
+else:
+  valid_dataset = NewsCrawlDataset(
+      extend_with_rootdir(config.valid_files), doc_split=True
+  )
+  valid_dataset.save(valid_path)
+
 test_dataset = None
 if config.test_files:
   print('Parsing test dataset')
-  test_dataset = NewsCrawlDataset(
-      extend_with_rootdir(config.test_files), doc_split=True
-  )
+  test_path = extend_with_rootdir(config.test_processed_path)
+  if os.path.exists(test_path):
+    test_dataset = NewsCrawlDataset.load(test_path)
+  else:
+    test_dataset = NewsCrawlDataset(
+        extend_with_rootdir(config.test_files), doc_split=True
+    )
+    test_dataset.save(test_path)
 
 #*** GET TOKENIZER ***
 #If cannot retrieve, train new
@@ -48,7 +69,7 @@ if config.test_files:
 tok_train_files = config.tokenizer_train_files
 if tok_train_files:
   tok_train_files = extend_with_rootdir(tok_train_files)
-tok_path = extend_with_rootdir([ config.tokenizer_name])[0]
+tok_path = extend_with_rootdir(config.tokenizer_name)
 
 print('Getting tokenizer from', tok_path)
 try:

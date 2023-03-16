@@ -15,8 +15,8 @@ def get_config():
     'long_subdir' : 'long',
 
     #Main parameters
-    'blocks'      : 1,
-    'repeats'     : 12,
+    'blocks'      : 12,
+    'repeats'     : 1,
     'hidden_dim'  : 768,
     'qkv_dim'     : 768,
     'expansion_dim' : 3072,
@@ -75,5 +75,9 @@ def get_config():
       'news-docs.2007.en.filtered',
     ],
     'test_files' : [],
+
+    'train_processed_path' : 'train.b',
+    'valid_processed_path' : 'valid.b',
+    'test_processed_path' : 'test.b',
   }
   return StaticAttrDict(config)

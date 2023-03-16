@@ -2,6 +2,7 @@ import torch
 import subprocess
 import linecache
 import base64
+import pickle
 
 from tokenizers import normalizers, pre_tokenizers, models, Tokenizer
 
@@ -26,18 +27,8 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     for f_idx, filename in enumerate(self.filenames):
       print(f'Indexing {filename}...')
       
-      try:
-        line_count = int(subprocess.check_output(f'wc -l {filename}', shell=True).split()[0])
-      except:
-        self.files.append(None)
-        self.sizes.append(0)
-        self.offsets.append([])
-        continue
-      self.sizes.append(line_count)
-      
       f = open(filename, 'r')
-      self.files.append(f)
-      
+        
       #Add document offsets
       offsets = [ 0 ]
       line = True
@@ -61,10 +52,29 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
           self.sentence_offsets.append( (f_idx, l_idx, sent_idx) )
 
       offsets.pop()
-
+      
+      self.sizes.append(len(offsets))
       self.offsets.append(offsets)
+      f.close()
 
+    self.open()
     print('Dataset created,', len(self), 'lines')
+
+  def open(self):
+    self.files = [ open(filename, 'r') for filename in self.filenames ]
+
+  def save(self, path):
+    with open(path, 'wb') as f:
+      pickle.dump((self.filenames, self.sizes, self.offsets, self.sentence_offsets), f)
+
+  @staticmethod
+  def load(path):
+    d = NewsCrawlDataset([])
+    with open(path, 'rb') as f:
+      d.filenames, d.sizes, d.offsets, d.sentence_offsets = pickle.load(f)
+    d.open()
+    print('Dataset loaded,', len(d), 'lines')
+    return d
 
   def __len__(self):
     size = sum(self.sizes) if self.doc_split else len(self.sentence_offsets)

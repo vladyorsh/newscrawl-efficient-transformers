@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from .modules import *
+from h_transformer_1d import HTransformer1D as RefHTransformer1D
 
 class HTransformer1D(nn.Module):
   def __init__(self, config, is_encoder, padding_idx=0, word_embeddings=None):
@@ -77,6 +78,33 @@ class HFWrapper(nn.Module):
       retval.update({ 'loss' : self.compute_loss(logits, labels) })
     return retval
 
+class RefTransformer(nn.Module):
+  def __init__(self, config):
+    super().__init__()
+    self.model = RefHTransformer1D(
+      num_tokens=config.tokenizer_vocab,
+      dim=config.hidden_dim, depth=config.blocks,
+      max_seq_len=None, heads=config.num_heads,
+      dim_head=config.qkv_dim, block_size=config.Nr,
+      reversible=False, shift_tokens=False,
+    )
+  
+  def compute_loss(self, logits, labels, mask=None):
+    vocab_size = logits.shape[-1]
+    if mask is not None:
+      labels = labels.masked_fill(~mask, -100)
+
+    return nn.CrossEntropyLoss()(logits.view(-1, vocab_size), labels.view(-1))
+
+  def forward(self, input_ids, attention_mask, decoder_input_ids=None, decoder_attention_mask=None, encoder_outputs=None, labels=None, ** kwargs):
+    logits = self.model(
+      input_ids, mask=attention_mask
+    )
+    retval = { 'logits' : logits }
+    if labels is not None:
+      #Assuming that ignored tokens are already masked with -100
+      retval.update({ 'loss' : self.compute_loss(logits, labels) })
+    return retval
 
 class CombinedModel(nn.Module):
   def __init__(self, encoder_model, decoder_model, padding_idx=0):
