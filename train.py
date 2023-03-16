@@ -33,23 +33,11 @@ def extend_with_rootdir(paths):
 
 print('Parsing train dataset')
 train_path = extend_with_rootdir(config.train_processed_path)
-if os.path.exists(train_path):
-  train_dataset = NewsCrawlDataset.load(train_path)
-else:
-  train_dataset = NewsCrawlDataset(
-    extend_with_rootdir(config.train_files), doc_split=True
-  )
-  train_dataset.save(train_path)
+train_dataset = NewsCrawlDataset.load(train_path)
 
 print('Parsing valid dataset')
 valid_path = extend_with_rootdir(config.valid_processed_path)
-if os.path.exists(valid_path):
-  valid_dataset = NewsCrawlDataset.load(valid_path)
-else:
-  valid_dataset = NewsCrawlDataset(
-      extend_with_rootdir(config.valid_files), doc_split=True
-  )
-  valid_dataset.save(valid_path)
+valid_dataset = NewsCrawlDataset.load(valid_path)
 
 test_dataset = None
 if config.test_files:
@@ -57,11 +45,6 @@ if config.test_files:
   test_path = extend_with_rootdir(config.test_processed_path)
   if os.path.exists(test_path):
     test_dataset = NewsCrawlDataset.load(test_path)
-  else:
-    test_dataset = NewsCrawlDataset(
-        extend_with_rootdir(config.test_files), doc_split=True
-    )
-    test_dataset.save(test_path)
 
 #*** GET TOKENIZER ***
 #If cannot retrieve, train new

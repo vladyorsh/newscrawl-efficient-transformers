@@ -28,7 +28,7 @@ def get_config():
     #Memory control
     'eval_accumulation_steps' : 1,
     'short_max_len' : 512,
-    'long_max_len' : None,
+    'long_max_len' : 8192, #None,
 
     #Dropout and epsilon for clamping divisions
     'attention_dropout_rate' : 0.1,
@@ -67,18 +67,18 @@ def get_config():
     
     #Data
     'train_files' : [
-      #'news-docs.2008.cs.filtered',
-      #'news-docs.2009.cs.filtered',
-      #'news-docs.2010.cs.filtered',
-      #'news-docs.2011.cs.filtered',
-      #'news-docs.2012.cs.filtered',
-      #'news-docs.2013.cs.filtered',
-      #'news-docs.2014.cs.filtered',
-      #'news-docs.2015.cs.filtered',
-      #'news-docs.2016.cs.filtered',
-      #'news-docs.2017.cs.filtered',
-      #'news-docs.2018.cs.filtered',
-      #'news-docs.2020.cs.filtered',
+      'news-docs.2008.cs.filtered',
+      'news-docs.2009.cs.filtered',
+      'news-docs.2010.cs.filtered',
+      'news-docs.2011.cs.filtered',
+      'news-docs.2012.cs.filtered',
+      'news-docs.2013.cs.filtered',
+      'news-docs.2014.cs.filtered',
+      'news-docs.2015.cs.filtered',
+      'news-docs.2016.cs.filtered',
+      'news-docs.2017.cs.filtered',
+      'news-docs.2018.cs.filtered',
+      'news-docs.2020.cs.filtered',
       #'news-docs.2007.en.filtered',
       #'news-docs.2008.en.filtered',
       #'news-docs.2009.en.filtered',
@@ -97,7 +97,7 @@ def get_config():
       'news-docs.2019.cs.filtered',
       'news-docs.2021.cs.filtered',
       'news-docs.2019.en.filtered',
-      'news-docs.2021.en.filtered',
+      #'news-docs.2021.en.filtered',
     ],
     'test_files' : [],
 
