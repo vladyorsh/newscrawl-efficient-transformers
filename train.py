@@ -87,7 +87,7 @@ for device in range(torch.cuda.device_count()):
   if t < min_memory_available:
     min_memory_available = t
 
-short_batch_size = int(min_memory_available / 1.0) #1GB per 1 sample of length ~256 (e.g. sentence)
+short_batch_size = int(min_memory_available / 0.5) #1GB per 1 sample of length ~256 (e.g. sentence)
 long_batch_size  = round(short_batch_size / 20) #Let it be 20x less
 
 #Extend to power of two
