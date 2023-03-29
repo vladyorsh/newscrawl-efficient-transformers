@@ -39,6 +39,7 @@ for i, path in enumerate(extend_with_rootdir(config.train_files)):
   train_dataset.filenames = train_dataset.filenames + split.filenames
   train_dataset.sizes = train_dataset.sizes + split.sizes
   train_dataset.offsets = train_dataset.offsets + split.offsets
+  split.sentence_offsets = [ (i, a, b) for _, a, b in split.sentence_offsets ]
   train_dataset.sentence_offsets = train_dataset.sentence_offsets + split.sentence_offsets
 
   split.close()

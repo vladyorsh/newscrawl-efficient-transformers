@@ -50,7 +50,7 @@ def get_config():
     'short_warmup_steps' : int(1e5), #Linear warmup steps
     'long_warmup_steps' : int(2.5e4),
 
-    'eval_steps' : 500, #Log, save and eval every ... steps
+    'eval_steps' : 10000, #Log, save and eval every ... steps
 
     'save_total_limit' : 20, #Override older checkpoints if there's more than ...
 
