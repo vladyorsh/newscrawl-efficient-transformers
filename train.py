@@ -1,7 +1,7 @@
 #from modeling.debug_config import *
 from modeling.config import *
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
-from modeling.models import HTransformer1D, HFWrapper
+from modeling.models import HTransformer1D, HFWrapper, RefTransformer
 from modeling.trainer import MyTrainer
 
 import os
@@ -87,7 +87,7 @@ for device in range(torch.cuda.device_count()):
   if t < min_memory_available:
     min_memory_available = t
 
-short_batch_size = int(min_memory_available / 0.5) #1GB per 1 sample of length ~256 (e.g. sentence)
+short_batch_size = int(min_memory_available / 1.0) #1GB per 1 sample of length ~256 (e.g. sentence)
 long_batch_size  = round(short_batch_size / 20) #Let it be 20x less
 
 #Extend to power of two
@@ -103,10 +103,14 @@ print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sent
 
 model = HTransformer1D(config, is_encoder, tokenizer.pad_token_id, None)
 model = HFWrapper(model)
+
+#model = RefTransformer(config)
+
 short_collator = get_lm_collator(
   tokenizer, padding='longest', max_length=config.short_max_len,
   mask_prob=0.0 if not is_encoder else config.mlm_mask_prob
 )
+
 long_collator = get_lm_collator(
   tokenizer, padding='longest', max_length=config.long_max_len,
   mask_prob=0.0 if not is_encoder else config.mlm_mask_prob

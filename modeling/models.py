@@ -84,10 +84,11 @@ class RefTransformer(nn.Module):
     self.model = RefHTransformer1D(
       num_tokens=config.tokenizer_vocab,
       dim=config.hidden_dim, depth=config.blocks,
-      max_seq_len=None, heads=config.num_heads,
+      max_seq_len=config.long_max_len, heads=config.num_heads,
       dim_head=config.qkv_dim, block_size=config.Nr,
       reversible=False, shift_tokens=False,
     )
+    self.conf = config
   
   def compute_loss(self, logits, labels, mask=None):
     vocab_size = logits.shape[-1]
@@ -97,9 +98,17 @@ class RefTransformer(nn.Module):
     return nn.CrossEntropyLoss()(logits.view(-1, vocab_size), labels.view(-1))
 
   def forward(self, input_ids, attention_mask, decoder_input_ids=None, decoder_attention_mask=None, encoder_outputs=None, labels=None, ** kwargs):
+    filler = 0
+    if input_ids.shape[-1] < self.conf.Nr * 4:
+      filler = self.conf.Nr * 4 - input_ids.shape[-1]
+      input_ids = nn.functional.pad(input_ids, (0, filler), value=0)
+      attention_mask = nn.functional.pad(attention_mask, (0, filler), value=0)
+
     logits = self.model(
-      input_ids, mask=attention_mask
+      input_ids, mask=attention_mask.bool()
     )
+    if filler:
+      logits = logits[..., :-filler, :].contiguous()
     retval = { 'logits' : logits }
     if labels is not None:
       #Assuming that ignored tokens are already masked with -100
