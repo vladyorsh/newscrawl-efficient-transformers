@@ -8,6 +8,9 @@ class StaticAttrDict:
   def __getitem__(self, key):
     return self.d[key]
 
+  def __setitem__(self, key, newvalue):
+    self.d[key] = newvalue
+
 def get_config():
   config = {
     'root_dir' : '.',
@@ -67,37 +70,37 @@ def get_config():
     
     #Data
     'train_files' : [
-      'news-docs.2008.cs.filtered',
-      'news-docs.2009.cs.filtered',
-      'news-docs.2010.cs.filtered',
-      'news-docs.2011.cs.filtered',
-      'news-docs.2012.cs.filtered',
-      'news-docs.2013.cs.filtered',
-      'news-docs.2014.cs.filtered',
-      'news-docs.2015.cs.filtered',
-      'news-docs.2016.cs.filtered',
-      'news-docs.2017.cs.filtered',
-      'news-docs.2018.cs.filtered',
-      'news-docs.2020.cs.filtered',
-      #'news-docs.2007.en.filtered',
-      #'news-docs.2008.en.filtered',
-      #'news-docs.2009.en.filtered',
-      #'news-docs.2010.en.filtered',
-      #'news-docs.2011.en.filtered',
-      #'news-docs.2012.en.filtered',
-      #'news-docs.2013.en.filtered',
-      #'news-docs.2014.en.filtered',
-      #'news-docs.2015.en.filtered',
-      #'news-docs.2016.en.filtered',
-      #'news-docs.2017.en.filtered',
-      'news-docs.2018.en.filtered',
-      'news-docs.2020.en.filtered',
+      'data/news-docs.2008.cs.filtered',
+      'data/news-docs.2009.cs.filtered',
+      'data/news-docs.2010.cs.filtered',
+      'data/news-docs.2011.cs.filtered',
+      'data/news-docs.2012.cs.filtered',
+      'data/news-docs.2013.cs.filtered',
+      'data/news-docs.2014.cs.filtered',
+      'data/news-docs.2015.cs.filtered',
+      'data/news-docs.2016.cs.filtered',
+      'data/news-docs.2017.cs.filtered',
+      'data/news-docs.2018.cs.filtered',
+      'data/news-docs.2020.cs.filtered',
+      #'data/news-docs.2007.en.filtered',
+      #'data/news-docs.2008.en.filtered',
+      #'data/news-docs.2009.en.filtered',
+      #'data/news-docs.2010.en.filtered',
+      #'data/news-docs.2011.en.filtered',
+      #'data/news-docs.2012.en.filtered',
+      #'data/news-docs.2013.en.filtered',
+      #'data/news-docs.2014.en.filtered',
+      #'data/news-docs.2015.en.filtered',
+      #'data/news-docs.2016.en.filtered',
+      #'data/news-docs.2017.en.filtered',
+      'data/news-docs.2018.en.filtered',
+      'data/news-docs.2020.en.filtered',
     ],
     'valid_files' : [
-      'news-docs.2019.cs.filtered',
-      'news-docs.2021.cs.filtered',
-      'news-docs.2019.en.filtered',
-      #'news-docs.2021.en.filtered',
+      'data/news-docs.2019.cs.filtered',
+      'data/news-docs.2021.cs.filtered',
+      'data/news-docs.2019.en.filtered',
+      #'data/news-docs.2021.en.filtered',
     ],
     'test_files' : [],
 

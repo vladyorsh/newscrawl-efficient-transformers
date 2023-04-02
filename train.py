@@ -1,5 +1,6 @@
 #from modeling.debug_config import *
 from modeling.config import *
+from modeling.debug_config import get_config as get_debug_config
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper, RefTransformer
 from modeling.trainer import MyTrainer
@@ -18,9 +19,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-m','--model', help='Train encoder or decoder', required=False, default='encoder')
 parser.add_argument('-c','--short', help='Path to short training checkpoint to continue', required=False, default=None)
 parser.add_argument('-C','--long', help='Path to long training checkpoint to continue', required=False, default=None)
+parser.add_argument('-d', '--debug', help='Debug mode', required=False, default=False)
 args = parser.parse_args()
 
-config = get_config()
+config = get_config() if not args.debug else get_debug_config()
 is_encoder = args.model.lower() == 'encoder'
 
 def extend_with_rootdir(paths):
