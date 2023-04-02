@@ -29,19 +29,23 @@ def get_config():
     'mlm_mask_prob' : 0.15,
     
     #Memory control
+    'adafactor' : True,
+    'mixed_precision' : False,
     'eval_accumulation_steps' : 1,
-    'short_max_len' : 512,
+    'short_max_len' : 128,
     'long_max_len' : 8192, #None,
 
     #Dropout and epsilon for clamping divisions
-    'attention_dropout_rate' : 0.1,
-    'hidden_dropout_rate' : 0.1,
+    'attention_dropout_rate' : 0.0,
+    'hidden_dropout_rate' : 0.0,
     'eps'         : 1e-12,
 
     #Training params
-    'full_batch_size' : 4096,
-    'base_lr' : 1e-4,
+    'base_lr' : 1e-3,
     'wd' : 0.01,
+
+    'short_full_batch_size' : 4096,
+    'long_full_batch_size' : 1024,
 
     'short_train_epochs' : 3.0,
     'short_max_steps' : int(8e4),   #If set, overrides epochs

@@ -11,16 +11,17 @@ def get_config():
   config['short_warmup_steps'] = 0
   config['long_warmup_steps'] = 0
 
-  config['eval_steps'] = 10
+  config['eval_steps'] = 5
 
   config['train_files'] = [
       'data/news-docs.2009.cs.filtered',
-      'data/news-docs.2008.en.filtered',
   ]
 
   config['valid_files'] = [
       'data/news-docs.2008.cs.filtered',
-      'data/news-docs.2007.en.filtered',
   ]
+
+  config['train_processed_path'] = ''
+  config['valid_processed_path'] = ''
 
   return config

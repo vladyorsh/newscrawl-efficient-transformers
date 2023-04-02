@@ -12,6 +12,7 @@ import torch
 
 from transformers import Trainer, TrainingArguments
 from transformers.utils import logging
+from transformers.debug_utils import DebugUnderflowOverflow
 
 #logging.set_verbosity_error()
 
@@ -34,19 +35,28 @@ def extend_with_rootdir(paths):
 #*** GET DATA ***
 
 print('Parsing train dataset')
-train_path = extend_with_rootdir(config.train_processed_path)
-train_dataset = NewsCrawlDataset.load(train_path)
+if os.path.exists(config.train_processed_path):
+  train_path = extend_with_rootdir(config.train_processed_path)
+  train_dataset = NewsCrawlDataset.load(train_path)
+else:
+  print('Creating train index from scratch')
+  train_dataset = NewsCrawlDataset(config.train_files)
 
 print('Parsing valid dataset')
-valid_path = extend_with_rootdir(config.valid_processed_path)
-valid_dataset = NewsCrawlDataset.load(valid_path)
+if os.path.exists(config.valid_processed_path):
+  valid_path = extend_with_rootdir(config.valid_processed_path)
+  valid_dataset = NewsCrawlDataset.load(valid_path)
+else:
+  print('Creating valid index from scratch')
+  valid_dataset = NewsCrawlDataset(config.valid_files)
 
 test_dataset = None
-if config.test_files:
-  print('Parsing test dataset')
-  test_path = extend_with_rootdir(config.test_processed_path)
-  if os.path.exists(test_path):
-    test_dataset = NewsCrawlDataset.load(test_path)
+
+#if config.test_files:
+#  print('Parsing test dataset')
+#  test_path = extend_with_rootdir(config.test_processed_path)
+#  if os.path.exists(test_path):
+#    test_dataset = NewsCrawlDataset.load(test_path)
 
 #*** GET TOKENIZER ***
 #If cannot retrieve, train new
@@ -89,15 +99,16 @@ for device in range(torch.cuda.device_count()):
   if t < min_memory_available:
     min_memory_available = t
 
-short_batch_size = int(min_memory_available / 1.0) #1GB per 1 sample of length ~256 (e.g. sentence)
-long_batch_size  = round(short_batch_size / 20) #Let it be 20x less
+scaling = 1.0 if not config.mixed_precision else 1.5
+short_batch_size = min_memory_available * 512 / config.short_max_len / scaling
+long_batch_size  = short_batch_size / config.long_max_len * config.short_max_len
 
 #Extend to power of two
-short_batch_size = max(2, 2 ** round(math.log2(short_batch_size)))
-long_batch_size  = max(1, 2 ** round(math.log2(long_batch_size)))
+short_batch_size = max(2, 2 ** math.floor(math.log2(short_batch_size)))
+long_batch_size  = max(1, 2 ** math.floor(math.log2(long_batch_size)))
 
-short_accum_steps = config.full_batch_size // short_batch_size
-long_accum_steps = config.full_batch_size // long_batch_size
+short_accum_steps = config.short_full_batch_size // short_batch_size
+long_accum_steps = config.long_full_batch_size // long_batch_size
 
 print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
@@ -107,6 +118,10 @@ model = HTransformer1D(config, is_encoder, tokenizer.pad_token_id, None)
 model = HFWrapper(model)
 
 #model = RefTransformer(config)
+
+
+if args.debug and torch.cuda.device_count() == 1:
+  debug_overflow = DebugUnderflowOverflow(model)
 
 short_collator = get_lm_collator(
   tokenizer, padding='longest', max_length=config.short_max_len,
@@ -134,6 +149,8 @@ common_args = {
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
   'load_best_model_at_end' : True,
   'overwrite_output_dir' : True,
+  'fp16' : config.mixed_precision,
+  'optim' : 'adafactor' if config.adafactor else 'adam',
 }
 
 short_training_args = TrainingArguments(

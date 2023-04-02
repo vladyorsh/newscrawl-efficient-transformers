@@ -70,12 +70,14 @@ class AttentionBlock(nn.Module):
 
     self.pre_ln = nn.LayerNorm(hidden_dim, eps=eps)
     self.att = attention
+    self.dropout_rate = dropout_rate
     self.dropout = nn.Dropout(dropout_rate)
 
   def forward(self, q, k=None, v=None, query_mask=None, key_mask=None):
     x = self.pre_ln(q)
     x = self.att(x, k, v, query_mask, key_mask)
-    x = self.dropout(x)
+    if self.dropout_rate > 1e-5:
+      x = self.dropout(x)
 
     return q + x
 
@@ -83,12 +85,13 @@ class FFN(nn.Module):
   def __init__(self, hidden_dim, expansion_dim, activation = nn.GELU(), eps=1e-12, dropout_rate=0.1):
     super().__init__()
 
-    self.expand = nn.Linear(hidden_dim, expansion_dim)
+    self.expand = nn.Linear(hidden_dim, expansion_dim, bias=False)
     self.activation = activation
-    self.contract=nn.Linear(expansion_dim, hidden_dim)
+    self.contract=nn.Linear(expansion_dim, hidden_dim, bias=False)
 
     self.layernorm = nn.LayerNorm(hidden_dim, eps=eps)
     self.dropout = nn.Dropout(dropout_rate)
+    self.dropout_rate = dropout_rate
 
   def forward(self, x):
     y = self.layernorm(x)
@@ -96,7 +99,8 @@ class FFN(nn.Module):
     y = self.expand(y)
     y = self.activation(y)
     y = self.contract(y)
-    y = self.dropout(y)
+    if self.dropout_rate > 1e-5:
+      y = self.dropout(y)
 
     x = x + y
     return x
@@ -153,8 +157,9 @@ class Attention(nn.Module):
     self.k = nn.Linear(hidden_dim, qkv_dim, bias=False)
     self.v = nn.Linear(hidden_dim, qkv_dim, bias=False)
 
-    self.o = nn.Linear(qkv_dim, hidden_dim)
+    self.o = nn.Linear(qkv_dim, hidden_dim, bias=False)
 
+    self.dropout_rate = dropout_rate
     self.dropout = nn.Dropout(dropout_rate)
 
   def split_heads(self, x):
@@ -196,7 +201,8 @@ class Attention(nn.Module):
       mask = torch.tril(mask)
     logits += (1 - mask) * -1e9
     A = nn.functional.softmax(logits, dim=-1)
-    A = self.dropout(A)
+    if self.dropout_rate > 1e-5:
+      A = self.dropout(A)
     out = torch.einsum('... Q K, ... K D -> ... Q D', A, v)
     
     out = self.join_heads(out)
@@ -219,7 +225,7 @@ class HAttention1D(nn.Module):
     self.k = nn.Linear(hidden_dim, qkv_dim, bias=False)
     self.v = nn.Linear(hidden_dim, qkv_dim, bias=False)
 
-    self.o = nn.Linear(qkv_dim, hidden_dim)
+    self.o = nn.Linear(qkv_dim, hidden_dim, bias=False)
 
     #Proper dropout implementation is on the way
 
@@ -433,6 +439,7 @@ class HAttention1D(nn.Module):
         if torch.is_tensor(y):
           y = einops.repeat(y, '... L D -> ... (L 2) D')
           A = einops.repeat(A, '... L -> ... (L 2)')
+          print(y, A)
 
         y = y_l + y
         A = A_l + A
