@@ -151,11 +151,12 @@ common_args = {
   'overwrite_output_dir' : True,
   'fp16' : config.mixed_precision,
   'optim' : 'adafactor' if config.adafactor else 'adam',
+  'eval_accumulation_steps' : config.eval_accumulation_steps,
 }
 
 short_training_args = TrainingArguments(
   per_device_train_batch_size=short_batch_size,
-  per_device_eval_batch_size=4 * short_batch_size,
+  per_device_eval_batch_size=short_batch_size,
   num_train_epochs=config.short_train_epochs, max_steps=config.short_max_steps,
   warmup_steps=config.short_warmup_steps,
   output_dir=os.path.join(config.root_dir, config.short_subdir),
@@ -164,7 +165,7 @@ short_training_args = TrainingArguments(
 )
 long_training_args = TrainingArguments(
   per_device_train_batch_size=long_batch_size,
-  per_device_eval_batch_size=4 * long_batch_size,
+  per_device_eval_batch_size=long_batch_size,
   num_train_epochs=config.long_train_epochs, max_steps=config.long_max_steps,
   warmup_steps=config.long_warmup_steps,
   output_dir=os.path.join(config.root_dir, config.long_subdir),

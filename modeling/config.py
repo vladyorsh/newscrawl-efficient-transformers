@@ -44,8 +44,8 @@ def get_config():
     'base_lr' : 1e-3,
     'wd' : 0.01,
 
-    'short_full_batch_size' : 4096,
-    'long_full_batch_size' : 1024,
+    'short_full_batch_size' : 1536,
+    'long_full_batch_size' : 256,
 
     'short_train_epochs' : 3.0,
     'short_max_steps' : int(8e4),   #If set, overrides epochs
