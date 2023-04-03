@@ -112,4 +112,8 @@ def get_config():
     'valid_processed_path' : 'valid.b',
     'test_processed_path' : 'test.b',
   }
+
+  if config['mixed_precision']:
+    config['eps'] = max(config['eps'], 1e-5)
+
   return StaticAttrDict(config)

@@ -199,7 +199,7 @@ class Attention(nn.Module):
     mask   = torch.einsum('... Q D, ... K D -> ... Q K', query_mask, key_mask)
     if self.causal:
       mask = torch.tril(mask)
-    logits += (1 - mask) * -1e9
+    logits += (1 - mask) * -5e4
     A = nn.functional.softmax(logits, dim=-1)
     if self.dropout_rate > 1e-5:
       A = self.dropout(A)
@@ -291,7 +291,7 @@ class HAttention1D(nn.Module):
     if self.causal and not blocks_swapped:
       mask = torch.tril(mask)
     
-    logits += (1 - mask) * -1e9 #Masking
+    logits += (1 - mask) * -5e4 #Masking
     logits -= torch.max(logits, dim=-1, keepdims=True).values #Numeric stabilization
     A = torch.exp(logits) #unnormalized attention scores, A_l in paper
 
