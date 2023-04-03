@@ -1,4 +1,4 @@
-#from modeling.debug_config import *
+7#from modeling.debug_config import *
 from modeling.config import *
 from modeling.debug_config import get_config as get_debug_config
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
@@ -105,7 +105,7 @@ long_batch_size  = short_batch_size / config.long_max_len * config.short_max_len
 
 #Extend to power of two
 short_batch_size = max(2, 2 ** math.floor(math.log2(short_batch_size)))
-long_batch_size  = max(1, 2 ** math.floor(math.log2(long_batch_size)))
+long_batch_size  = max(2, 2 ** math.floor(math.log2(long_batch_size)))
 
 short_accum_steps = config.short_full_batch_size // short_batch_size
 long_accum_steps = config.long_full_batch_size // long_batch_size
@@ -151,6 +151,7 @@ common_args = {
   'overwrite_output_dir' : True,
   'fp16' : config.mixed_precision,
   'optim' : 'adafactor' if config.adafactor else 'adam',
+   'adam_beta1' : config.betas[0], 'adam_beta2' : config.betas[1],
   'eval_accumulation_steps' : config.eval_accumulation_steps,
 }
 

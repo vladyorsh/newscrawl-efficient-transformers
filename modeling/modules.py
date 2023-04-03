@@ -12,11 +12,14 @@ class WordEmbeddings(nn.Module):
     return self.embs(x)
 
 class SineEmbeddings(nn.Module):
-  def __init__(self, hidden_dim, eps=1e-12, dropout_rate=0.1):
+  def __init__(self, hidden_dim, eps=1e-12, dropout_rate=0.1, scaled=True):
     super().__init__()
     self.hidden_dim = hidden_dim
     self.layernorm = nn.LayerNorm(hidden_dim, eps=eps)
     self.dropout   = nn.Dropout(dropout_rate)
+    self.scaled    = scaled
+    if scaled:
+      self.scale = nn.Parameter(torch.Tensor([1 / math.sqrt(hidden_dim)]), requires_grad=True)
 
   def get_sines(self, seq_len, device='cpu'):
     embs = torch.zeros(seq_len, self.hidden_dim, device=device)
@@ -34,6 +37,8 @@ class SineEmbeddings(nn.Module):
     seq_len = x.shape[-2]
     embs = self.get_sines(seq_len, device=x.device)
     embs.unsqueeze(-1)
+    if self.scaled:
+      embs *= self.scale
 
     rank_diff = len(x.shape) - len(embs.shape)
     for _ in range(rank_diff): embs = embs.unsqueeze(0)
@@ -45,11 +50,13 @@ class SineEmbeddings(nn.Module):
     return x
 
 class Output(nn.Module):
-  def __init__(self, shared_embeddings=None, hidden_dim=None, vocab_size=None):
+  def __init__(self, shared_embeddings=None, hidden_dim=None, vocab_size=None, eps=1e-12):
     super().__init__()
     self.shared_embeddings = shared_embeddings
     self.hidden_dim = hidden_dim
     self.vocab_size = vocab_size
+
+    self.layernorm = nn.LayerNorm(hidden_dim, eps=eps)
 
     if shared_embeddings is None:
       self.lin = nn.Linear(hidden_dim, vocab_size, bias=True)
@@ -57,6 +64,8 @@ class Output(nn.Module):
       self.bias = nn.Parameter(torch.zeros(self.shared_embeddings.embs.weight.shape[0]), requires_grad=True)
 
   def forward(self, x):
+    x = self.layernorm(x)
+
     if self.shared_embeddings is not None:
       x = torch.einsum('...h,vh->...v', x, self.shared_embeddings.embs.weight)
       x = x + self.bias
@@ -81,13 +90,30 @@ class AttentionBlock(nn.Module):
 
     return q + x
 
+class GLU(nn.Module):
+  def __init__(self, input_dim, output_dim, transform_bias=False, gate_bias=False):
+    super().__init__()
+    self.transform = nn.Linear(input_dim, output_dim, bias=transform_bias)
+    self.gate = nn.Linear(input_dim, output_dim, bias=gate_bias)
+
+  def forward(self, input):
+    x = self.transform(input)
+    g = self.gate(input)
+    g = torch.sigmoid(g)
+
+    return x * g
+
 class FFN(nn.Module):
   def __init__(self, hidden_dim, expansion_dim, activation = nn.GELU(), eps=1e-12, dropout_rate=0.1):
     super().__init__()
 
-    self.expand = nn.Linear(hidden_dim, expansion_dim, bias=False)
-    self.activation = activation
-    self.contract=nn.Linear(expansion_dim, hidden_dim, bias=False)
+    #self.expand = nn.Linear(hidden_dim, expansion_dim, bias=False)
+    #self.activation = activation
+    #self.contract=nn.Linear(expansion_dim, hidden_dim, bias=False)
+
+    
+    self.expand = GLU(hidden_dim, expansion_dim)
+    self.contract=GLU(expansion_dim, hidden_dim)
 
     self.layernorm = nn.LayerNorm(hidden_dim, eps=eps)
     self.dropout = nn.Dropout(dropout_rate)
@@ -97,7 +123,7 @@ class FFN(nn.Module):
     y = self.layernorm(x)
 
     y = self.expand(y)
-    y = self.activation(y)
+    #y = self.activation(y)
     y = self.contract(y)
     if self.dropout_rate > 1e-5:
       y = self.dropout(y)
@@ -157,7 +183,7 @@ class Attention(nn.Module):
     self.k = nn.Linear(hidden_dim, qkv_dim, bias=False)
     self.v = nn.Linear(hidden_dim, qkv_dim, bias=False)
 
-    self.o = nn.Linear(qkv_dim, hidden_dim, bias=False)
+    self.o = nn.Linear(qkv_dim, hidden_dim, bias=True)
 
     self.dropout_rate = dropout_rate
     self.dropout = nn.Dropout(dropout_rate)
@@ -225,7 +251,7 @@ class HAttention1D(nn.Module):
     self.k = nn.Linear(hidden_dim, qkv_dim, bias=False)
     self.v = nn.Linear(hidden_dim, qkv_dim, bias=False)
 
-    self.o = nn.Linear(qkv_dim, hidden_dim, bias=False)
+    self.o = nn.Linear(qkv_dim, hidden_dim, bias=True)
 
     #Proper dropout implementation is on the way
 

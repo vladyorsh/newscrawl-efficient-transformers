@@ -37,7 +37,7 @@ class HTransformer1D(nn.Module):
 
     self.blocks = self.blocks * config.repeats
     self.blocks = nn.ModuleList(self.blocks)
-    self.out = Output(self.word_embeddings)
+    self.out = Output(self.word_embeddings, hidden_dim=config.hidden_dim, vocab_size=config.tokenizer_vocab, eps=config.eps)
 
   def forward(self, q, k=None, v=None, query_mask=None, key_mask=None, return_hidden=False):
     q = self.word_embeddings(q)

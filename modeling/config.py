@@ -22,7 +22,7 @@ def get_config():
     'repeats'     : 1,
     'hidden_dim'  : 768,
     'qkv_dim'     : 768,
-    'expansion_dim' : 3072,
+    'expansion_dim' : 1536, #3072,
     'num_heads'   : 12,
     'block_size'  : 16,
 
@@ -43,6 +43,7 @@ def get_config():
     #Training params
     'base_lr' : 1e-3,
     'wd' : 0.01,
+    'betas' : (0.9, 0.98),
 
     'short_full_batch_size' : 1536,
     'long_full_batch_size' : 256,
