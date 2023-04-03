@@ -2,7 +2,7 @@
 from modeling.config import *
 from modeling.debug_config import get_config as get_debug_config
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
-from modeling.models import HTransformer1D, HFWrapper, RefTransformer
+from modeling.models import HTransformer1D, HFWrapper, RefTransformer1D
 from modeling.trainer import MyTrainer
 
 import os
@@ -117,7 +117,7 @@ print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sent
 model = HTransformer1D(config, is_encoder, tokenizer.pad_token_id, None)
 model = HFWrapper(model)
 
-#model = RefTransformer(config)
+#model = RefTransformer1D(config)
 
 
 if args.debug and torch.cuda.device_count() == 1:
