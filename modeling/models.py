@@ -78,7 +78,7 @@ class HFWrapper(nn.Module):
       retval.update({ 'loss' : self.compute_loss(logits, labels) })
     return retval
 
-class RefTransformer(nn.Module):
+class RefTransformer1D(nn.Module):
   def __init__(self, config):
     super().__init__()
     self.model = RefHTransformer1D(

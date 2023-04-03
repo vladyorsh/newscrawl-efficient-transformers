@@ -439,7 +439,6 @@ class HAttention1D(nn.Module):
         if torch.is_tensor(y):
           y = einops.repeat(y, '... L D -> ... (L 2) D')
           A = einops.repeat(A, '... L -> ... (L 2)')
-          print(y, A)
 
         y = y_l + y
         A = A_l + A
