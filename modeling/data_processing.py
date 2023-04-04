@@ -17,6 +17,34 @@ from transformers import PreTrainedTokenizerFast
 class NewsCrawlDataset(torch.utils.data.Dataset):
   def __init__(self, files, doc_split=True):
     self.filenames = files
+    self.doc_split = doc_split
+
+    self.items = []
+    for filename in self.filenames:
+      print(f'Indexing {filename}...')
+      with open(filename, 'r') as f:
+        for line in f:
+          line = line.split('\t')
+          line = line[2] if self.doc_split else line[1]
+          line = base64.b64decode(line).decode('utf-8').replace('\n\n', '\n')
+          if doc_split and line:
+            self.items.append(line)
+          else:
+            line = line.strip().splitlines()
+            line = [ s for s in line if s ]
+            self.items.extend(line)
+    print('Dataset created,', len(self), 'lines')
+
+  def __getitem__(self, idx):
+    return self.items[idx]
+
+  def __len__(self):
+    return len(self.items)
+
+
+class NewsCrawlDatasetLazy(torch.utils.data.Dataset):
+  def __init__(self, files, doc_split=True):
+    self.filenames = files
     
     self.files = []
     self.sizes = []
@@ -82,9 +110,12 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     print('Dataset loaded,', len(d), 'lines')
     return d
 
-  def __len__(self):
+  def len(self):
     size = sum(self.sizes) if self.doc_split else len(self.sentence_offsets)
     return size
+
+  #def __len__(self):
+  #  return self.len()
 
   def line_to_text(self, line, doc_split = True):
     idx = 2 if doc_split else 1
@@ -123,7 +154,7 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
     else:
       file_idx, line_idx, sent_idx = self.sentence_offsets[idx]
       end_idx = None
-      if idx != len(self) - 1:
+      if idx != self.len() - 1:
         next_file_idx, next_line_idx, next_sent_idx = self.sentence_offsets[idx+1]
         if next_file_idx == file_idx and next_line_idx == line_idx:
           end_idx = next_sent_idx
@@ -218,11 +249,20 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
     if mask_prob > 1e-5:
       mask = torch.bernoulli(mask_prob * torch.ones(* inputs.input_ids.shape))
       mask = mask * (1 - special_tokens_mask)
-      mask = mask.bool()
+      action_mask = torch.rand(* mask.shape)
 
       #Assign -100 to pad or non-[MASK] tokens
       inputs['labels']   =inputs.input_ids.masked_fill(~mask, -100)
-      inputs['input_ids']=inputs.input_ids.masked_fill(mask, mask_token)
+
+      #Replace 80% of masked tokens with [MASK]
+      mask_mask = mask & (action_mask < 0.8)
+      inputs['input_ids'] = inputs.input_ids.masked_fill(mask_mask, mask_token)
+
+      #Replace 10% of masked tokens with a random word
+      random = torch.randint(low=0, high=fast_tokenizer.vocab_size, size=inputs.input_ids.shape)
+      rand_mask = mask & (0.8 <= action_mask < 0.9)
+      inputs['input_ids'] = torch.where(rand_mask, random, inputs.input_ids)
+      #Do nothing with the rest
     else:
       original_inputs = torch.clone(inputs.input_ids)
       #Causal masking

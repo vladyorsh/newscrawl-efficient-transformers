@@ -2,16 +2,18 @@ from .config import get_config as get_base_config
 
 def get_config():
   config = get_base_config()
+
+  #config['blocks'] = 1
   
-  config['short_max_steps'] = 10
-  config['short_eval_steps'] = 10
-  config['long_max_steps'] = 10
-  config['long_eval_steps'] = 10
+  config['short_max_steps'] = 100
+  config['short_eval_steps'] = 100
+  config['long_max_steps'] = 50
+  config['long_eval_steps'] = 50
 
-  config['short_warmup_steps'] = 0
-  config['long_warmup_steps'] = 0
+  config['short_warmup_steps'] = 50
+  config['long_warmup_steps'] = 25
 
-  config['eval_steps'] = 5
+  config['eval_steps'] = 10
 
   config['train_files'] = [
       'data/news-docs.2009.cs.filtered',

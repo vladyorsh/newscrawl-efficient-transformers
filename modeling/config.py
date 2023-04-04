@@ -24,7 +24,6 @@ def get_config():
     'qkv_dim'     : 768,
     'expansion_dim' : 1536, #3072,
     'num_heads'   : 12,
-    'block_size'  : 16,
 
     'mlm_mask_prob' : 0.15,
     
@@ -50,15 +49,15 @@ def get_config():
 
     'short_train_epochs' : 3.0,
     'short_max_steps' : int(8e4),   #If set, overrides epochs
-    'short_eval_steps' : None, #If set, overrides maximum amount of evaluation steps
+    'short_eval_steps' : int(2e4), #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : int(2e4),   #If set, overrides epochs
-    'long_eval_steps' : None, #If set, overrides maximum amount of evaluation steps
+    'long_eval_steps' : int(5e3), #If set, overrides maximum amount of evaluation steps
     
-    'short_warmup_steps' : int(1e4), #Linear warmup steps
-    'long_warmup_steps' : int(2.5e3),
+    'short_warmup_steps' : int(4e4), #Linear warmup steps
+    'long_warmup_steps' : int(1e4),
 
-    'eval_steps' : 10000, #Log, save and eval every ... steps
+    'eval_steps' : 2000, #Log, save and eval every ... steps
 
     'save_total_limit' : 20, #Override older checkpoints if there's more than ...
 
@@ -75,43 +74,21 @@ def get_config():
     
     #Data
     'train_files' : [
-      'data/news-docs.2008.cs.filtered',
-      'data/news-docs.2009.cs.filtered',
-      'data/news-docs.2010.cs.filtered',
-      'data/news-docs.2011.cs.filtered',
-      'data/news-docs.2012.cs.filtered',
-      'data/news-docs.2013.cs.filtered',
-      'data/news-docs.2014.cs.filtered',
-      'data/news-docs.2015.cs.filtered',
-      'data/news-docs.2016.cs.filtered',
       'data/news-docs.2017.cs.filtered',
       'data/news-docs.2018.cs.filtered',
       'data/news-docs.2020.cs.filtered',
-      #'data/news-docs.2007.en.filtered',
-      #'data/news-docs.2008.en.filtered',
-      #'data/news-docs.2009.en.filtered',
-      #'data/news-docs.2010.en.filtered',
-      #'data/news-docs.2011.en.filtered',
-      #'data/news-docs.2012.en.filtered',
-      #'data/news-docs.2013.en.filtered',
-      #'data/news-docs.2014.en.filtered',
-      #'data/news-docs.2015.en.filtered',
-      #'data/news-docs.2016.en.filtered',
-      #'data/news-docs.2017.en.filtered',
-      'data/news-docs.2018.en.filtered',
-      'data/news-docs.2020.en.filtered',
+      'data/news-docs.2021.en.filtered',
     ],
     'valid_files' : [
       'data/news-docs.2019.cs.filtered',
       'data/news-docs.2021.cs.filtered',
-      'data/news-docs.2019.en.filtered',
-      #'data/news-docs.2021.en.filtered',
+      'data/news-docs.2020.en.filtered',
     ],
     'test_files' : [],
 
-    'train_processed_path' : 'train.b',
-    'valid_processed_path' : 'valid.b',
-    'test_processed_path' : 'test.b',
+    'train_processed_path' : '', #'train.b',
+    'valid_processed_path' : '', #'valid.b',
+    'test_processed_path' : '', #'test.b',
   }
 
   if config['mixed_precision']:

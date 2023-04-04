@@ -33,7 +33,7 @@ def extend_with_rootdir(paths):
     return os.path.join(config.root_dir, paths)
 
 #*** GET DATA ***
-
+'''
 print('Parsing train dataset')
 if os.path.exists(config.train_processed_path):
   train_path = extend_with_rootdir(config.train_processed_path)
@@ -50,7 +50,9 @@ else:
   print('Creating valid index from scratch')
   valid_dataset = NewsCrawlDataset(config.valid_files)
 
+
 test_dataset = None
+'''
 
 #if config.test_files:
 #  print('Parsing test dataset')
@@ -141,7 +143,7 @@ long_collator = get_lm_collator(
 #*** DEFINE TRAINING ARGUMENTS ***
 
 common_args = {
-  'do_train' : True, 'do_eval' : True, 'do_predict' : True if test_dataset else False,
+  'do_train' : True, 'do_eval' : True, 'do_predict' : False,
   'evaluation_strategy' : 'steps',
   #'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'learning_rate' : config.base_lr, 'weight_decay' : config.wd,
@@ -153,6 +155,7 @@ common_args = {
   'optim' : 'adafactor' if config.adafactor else 'adam',
    'adam_beta1' : config.betas[0], 'adam_beta2' : config.betas[1],
   'eval_accumulation_steps' : config.eval_accumulation_steps,
+  'data_seed' : 42,
 }
 
 short_training_args = TrainingArguments(
@@ -174,6 +177,11 @@ long_training_args = TrainingArguments(
   ** common_args,
 )
 
+#*** READ SENTENCE DATASET ***
+train_dataset = NewsCrawlDataset(config.train_files, doc_split=False)
+valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=False)
+test_dataset = None
+
 #*** SHORT SEQUENCE PRETRAINING ***
 
 TrainerClass = Trainer
@@ -189,12 +197,6 @@ short_trainer = TrainerClass(
   eval_dataset =valid_dataset,
 )
 
-#Set datasets to sentence-split mode for short-sequence pretraining
-train_dataset.doc_split = False
-valid_dataset.doc_split = False
-if test_dataset:
-  test_dataset.doc_split = False
-
 if args.long is None:
   print('*** Commencing short pretraining ***')
   if args.short is None:
@@ -203,6 +205,10 @@ if args.long is None:
     short_trainer.train(args.short)
 else:
   print('*** Long checkpoint found, skipping short pretraining ***')
+
+#*** READ DOCUMENT DATASET ***
+train_dataset = NewsCrawlDataset(config.train_files, doc_split=True)
+valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=True)
 
 #*** LONG SEQUENCE PRETRAINING
 
@@ -218,12 +224,6 @@ long_trainer = TrainerClass(
   train_dataset=train_dataset,
   eval_dataset =valid_dataset,
 )
-
-#Set datasets to doc-split mode for long-sequence pretraining
-train_dataset.doc_split = True
-valid_dataset.doc_split = True
-if test_dataset:
-  test_dataset.doc_split = True
 
 print('*** Commencing long pretraining ***')
 if args.long is None:
