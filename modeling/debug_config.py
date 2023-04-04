@@ -4,7 +4,7 @@ def get_config():
   config = get_base_config()
 
   #config['blocks'] = 1
-  
+
   config['short_max_steps'] = 100
   config['short_eval_steps'] = 100
   config['long_max_steps'] = 50

@@ -1,6 +1,10 @@
 7#from modeling.debug_config import *
+
 from modeling.config import *
 from modeling.debug_config import get_config as get_debug_config
+from modeling.encoder_config import get_config as encoder_config
+from modeling.decoder_config import get_config as decoder_config
+
 from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper, RefTransformer1D
 from modeling.trainer import MyTrainer
@@ -23,8 +27,15 @@ parser.add_argument('-C','--long', help='Path to long training checkpoint to con
 parser.add_argument('-d', '--debug', help='Debug mode', required=False, default=False)
 args = parser.parse_args()
 
-config = get_config() if not args.debug else get_debug_config()
 is_encoder = args.model.lower() == 'encoder'
+
+config = None
+if args.debug:
+  config = debug_config()
+elif is_encoder:
+  config = encoder_config()
+else:
+  config = decoder_config()
 
 def extend_with_rootdir(paths):
   if isinstance(paths, list) or isinstance(paths, tuple):

@@ -14,8 +14,8 @@ class StaticAttrDict:
 def get_config():
   config = {
     'root_dir' : '.',
-    'short_subdir' : 'short',
-    'long_subdir' : 'long',
+    'short_subdir' : 'encoder_short',
+    'long_subdir' : 'encoder_long',
 
     #Main parameters
     'blocks'      : 12,
