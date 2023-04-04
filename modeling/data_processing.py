@@ -249,6 +249,8 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
     if mask_prob > 1e-5:
       mask = torch.bernoulli(mask_prob * torch.ones(* inputs.input_ids.shape))
       mask = mask * (1 - special_tokens_mask)
+      mask = mask.bool()
+
       action_mask = torch.rand(* mask.shape)
 
       #Assign -100 to pad or non-[MASK] tokens
@@ -260,7 +262,7 @@ def get_lm_collator(fast_tokenizer, padding='max_length', max_length=512, mask_p
 
       #Replace 10% of masked tokens with a random word
       random = torch.randint(low=0, high=fast_tokenizer.vocab_size, size=inputs.input_ids.shape)
-      rand_mask = mask & (0.8 <= action_mask < 0.9)
+      rand_mask = mask & (0.8 <= action_mask) & (action_mask < 0.9)
       inputs['input_ids'] = torch.where(rand_mask, random, inputs.input_ids)
       #Do nothing with the rest
     else:
