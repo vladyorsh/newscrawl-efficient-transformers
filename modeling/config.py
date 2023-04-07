@@ -48,14 +48,14 @@ def get_config():
     'long_full_batch_size' : 256,
 
     'short_train_epochs' : 3.0,
-    'short_max_steps' : int(8e4),   #If set, overrides epochs
-    'short_eval_steps' : int(2e4), #If set, overrides maximum amount of evaluation steps
+    'short_max_steps' : int(6e4),   #If set, overrides epochs
+    'short_eval_steps' : int(3e3), #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
-    'long_max_steps' : int(2e4),   #If set, overrides epochs
-    'long_eval_steps' : int(5e3), #If set, overrides maximum amount of evaluation steps
+    'long_max_steps' : int(1.5e4),   #If set, overrides epochs
+    'long_eval_steps' : int(1e3), #If set, overrides maximum amount of evaluation steps
     
-    'short_warmup_steps' : int(4e4), #Linear warmup steps
-    'long_warmup_steps' : int(1e4),
+    'short_warmup_steps' : int(3e4), #Linear warmup steps
+    'long_warmup_steps' : int(7.5e3),
 
     'eval_steps' : 2000, #Log, save and eval every ... steps
 

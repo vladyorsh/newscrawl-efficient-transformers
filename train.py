@@ -113,12 +113,19 @@ for device in range(torch.cuda.device_count()):
     min_memory_available = t
 
 scaling = 1.0 if not config.mixed_precision else 1.5
-short_batch_size = min_memory_available * 512 / config.short_max_len / scaling
-long_batch_size  = short_batch_size / config.long_max_len * config.short_max_len
 
 #Extend to power of two
-short_batch_size = max(2, 2 ** math.floor(math.log2(short_batch_size)))
-long_batch_size  = max(2, 2 ** math.floor(math.log2(long_batch_size)))
+short_batch_size = None
+if min_memory_available > 38:
+  short_batch_size = 128
+elif min_memory_available > 30:
+  short_batch_size = 64
+elif min_memory_available > 22:
+  short_batch_size = 48
+else:
+  short_batch_size = max(2, int(min_memory_available * 512 / config.short_max_len / scaling))
+
+long_batch_size  = max(2, int(short_batch_size * config.short_max_len / config.long_max_len))
 
 short_accum_steps = config.short_full_batch_size // short_batch_size
 long_accum_steps = config.long_full_batch_size // long_batch_size
