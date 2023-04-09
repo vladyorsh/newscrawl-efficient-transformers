@@ -68,6 +68,7 @@ class Output(nn.Module):
 
     if self.shared_embeddings is not None:
       x = torch.einsum('...h,vh->...v', x, self.shared_embeddings.embs.weight)
+      x = x / math.sqrt(x.shape[-1])
       x = x + self.bias
     else:
       x = self.lin(x)
