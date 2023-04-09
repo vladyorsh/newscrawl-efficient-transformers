@@ -1,11 +1,9 @@
-7#from modeling.debug_config import *
-
 from modeling.config import *
-from modeling.debug_config import get_config as get_debug_config
+from modeling.debug_config import get_config as debug_config
 from modeling.encoder_config import get_config as encoder_config
 from modeling.decoder_config import get_config as decoder_config
 
-from modeling.data_processing import NewsCrawlDataset, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
+from modeling.data_processing import NewsCrawlDataset, NewsCrawlDatasetLazy, get_tokenizer, train_tokenizer, make_fast_tokenizer, get_lm_collator
 from modeling.models import HTransformer1D, HFWrapper, RefTransformer1D
 from modeling.trainer import MyTrainer
 
@@ -25,9 +23,11 @@ parser.add_argument('-m','--model', help='Train encoder or decoder', required=Fa
 parser.add_argument('-c','--short', help='Path to short training checkpoint to continue', required=False, default=None)
 parser.add_argument('-C','--long', help='Path to long training checkpoint to continue', required=False, default=None)
 parser.add_argument('-d', '--debug', help='Debug mode', required=False, default=False)
+parser.add_argument('-l', '--lazy', help='Lazy data fetching', required=False, default=False)
 args = parser.parse_args()
 
 is_encoder = args.model.lower() == 'encoder'
+lazy = args.lazy
 
 config = None
 if args.debug:
@@ -98,7 +98,10 @@ except:
 #*** ESTIMATE AVAILABLE MEMORY AND BATCH SIZES ***
 
 min_memory_available = 1000.0
+device_count = 0
 for device in range(torch.cuda.device_count()):
+  device_count += 1
+
   t = torch.cuda.get_device_properties(device).total_memory
   r = torch.cuda.memory_reserved(device)
   a = torch.cuda.memory_allocated(device)
@@ -116,8 +119,10 @@ scaling = 1.0 if not config.mixed_precision else 1.5
 
 #Extend to power of two
 short_batch_size = None
-if min_memory_available > 38:
+if min_memory_available > 42:
   short_batch_size = 128
+elif min_memory_available > 36:
+  short_batch_size = 96
 elif min_memory_available > 30:
   short_batch_size = 64
 elif min_memory_available > 22:
@@ -127,8 +132,8 @@ else:
 
 long_batch_size  = max(2, int(short_batch_size * config.short_max_len / config.long_max_len))
 
-short_accum_steps = config.short_full_batch_size // short_batch_size
-long_accum_steps = config.long_full_batch_size // long_batch_size
+short_accum_steps = round(config.short_full_batch_size // short_batch_size / device_count)
+long_accum_steps  = round(config.long_full_batch_size // long_batch_size / device_count)
 
 print(f'Estimated batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
@@ -185,6 +190,7 @@ short_training_args = TrainingArguments(
   gradient_accumulation_steps=short_accum_steps,
   ** common_args,
 )
+
 long_training_args = TrainingArguments(
   per_device_train_batch_size=long_batch_size,
   per_device_eval_batch_size=long_batch_size,
@@ -192,15 +198,24 @@ long_training_args = TrainingArguments(
   warmup_steps=config.long_warmup_steps,
   output_dir=os.path.join(config.root_dir, config.long_subdir),
   gradient_accumulation_steps=long_accum_steps,
-  ** common_args,
 )
 
+print(f'Using {short_training_args.n_gpu} and {long_training_args.n_gpu} GPUs for short and long pretraining.')
+print(f'Estimated true training batch sizes are {short_accum_steps * device_count * short_batch_size} and {long_accum_steps * device_count * long_batch_size} respectively.')
+
 #*** READ SENTENCE DATASET ***
-train_dataset = NewsCrawlDataset(config.train_files, doc_split=False)
-valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=False)
-test_dataset = None
+if lazy:
+  train_dataset = NewsCrawlDatasetLazy(config.train_files, doc_split=False)
+  valid_dataset = NewsCrawlDatasetLazy(config.valid_files, doc_split=False)
+  test_dataset = None
+else:
+  train_dataset = NewsCrawlDataset(config.train_files, doc_split=False)
+  valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=False)
+  test_dataset = None
 
 #*** SHORT SEQUENCE PRETRAINING ***
+
+print(f'Output paths:', config.short_subdir, 'and', config.long_subdir)
 
 TrainerClass = Trainer
 if config.short_eval_steps:
@@ -225,8 +240,12 @@ else:
   print('*** Long checkpoint found, skipping short pretraining ***')
 
 #*** READ DOCUMENT DATASET ***
-train_dataset = NewsCrawlDataset(config.train_files, doc_split=True)
-valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=True)
+if not lazy:
+  train_dataset = NewsCrawlDataset(config.train_files, doc_split=True)
+  valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=True)
+else:
+  train_dataset.doc_split = False
+  valid_dataset.doc_split = False
 
 #*** LONG SEQUENCE PRETRAINING
 

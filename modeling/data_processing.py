@@ -114,8 +114,8 @@ class NewsCrawlDatasetLazy(torch.utils.data.Dataset):
     size = sum(self.sizes) if self.doc_split else len(self.sentence_offsets)
     return size
 
-  #def __len__(self):
-  #  return self.len()
+  def __len__(self):
+    return self.len()
 
   def line_to_text(self, line, doc_split = True):
     idx = 2 if doc_split else 1

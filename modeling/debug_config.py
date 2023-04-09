@@ -5,15 +5,18 @@ def get_config():
 
   #config['blocks'] = 1
 
-  config['short_max_steps'] = 100
-  config['short_eval_steps'] = 100
-  config['long_max_steps'] = 50
-  config['long_eval_steps'] = 50
+  config['short_subdir'] = 'debug_short'
+  config['long_subdir']  = 'debug_long'
 
-  config['short_warmup_steps'] = 50
-  config['long_warmup_steps'] = 25
+  config['short_max_steps'] = 1000
+  config['short_eval_steps'] = 1000
+  config['long_max_steps'] = 500
+  config['long_eval_steps'] = 500
 
-  config['eval_steps'] = 10
+  config['short_warmup_steps'] = 500
+  config['long_warmup_steps'] = 250
+
+  config['eval_steps'] = 250
 
   config['train_files'] = [
       'data/news-docs.2009.cs.filtered',
