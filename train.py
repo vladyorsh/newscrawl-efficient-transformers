@@ -250,7 +250,7 @@ if not skip:
 else:
   print('Skip argument passed, skipping short pretraining...')
   checkpoint = torch.load(os.path.join(args.short, 'pytorch_model.bin'))
-  result = model.load_state_dict(checkpoint['model_state_dict'], True)
+  result = model.load_state_dict(checkpoint, True)
   print('Checkpoint loaded with result', result)
 
 #*** READ DOCUMENT DATASET ***
