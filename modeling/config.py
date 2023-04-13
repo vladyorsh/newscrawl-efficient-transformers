@@ -40,7 +40,8 @@ def get_config():
     'eps'         : 1e-12,
 
     #Training params
-    'base_lr' : 1e-3,
+    'short_base_lr' : 1e-3,
+    'long_base_lr'  : 1e-3,
     'wd' : 0.01,
     'betas' : (0.9, 0.98),
 
