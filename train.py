@@ -124,22 +124,22 @@ short_batch_size = None
 long_batch_size  = None
 if min_memory_available > 42:
   short_batch_size = 128
-  long_batch_size  = 4
+  long_batch_size  = 6
 elif min_memory_available > 36:
-  long_batch_size  = 3
+  long_batch_size  = 4
   short_batch_size = 96
 elif min_memory_available > 30:
-  long_batch_size = 2
+  long_batch_size = 3
   short_batch_size = 64
 elif min_memory_available > 22:
-  long_batch_size = 1
+  long_batch_size = 2
   short_batch_size = 48
 else:
   short_batch_size = max(2, int(min_memory_available * 512 / config.short_max_len / scaling))
   long_batch_size  = max(2, int(short_batch_size * config.short_max_len / config.long_max_len))
 
-short_accum_steps = round(config.short_full_batch_size // short_batch_size / device_count)
-long_accum_steps  = round(config.long_full_batch_size  // long_batch_size  / device_count)
+short_accum_steps = math.ceil(config.short_full_batch_size // short_batch_size / device_count)
+long_accum_steps  = math.ceil(config.long_full_batch_size  // long_batch_size  / device_count)
 
 print(f'Estimated per-device batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
@@ -253,6 +253,10 @@ else:
   result = model.load_state_dict(checkpoint, True)
   print('Checkpoint loaded with result', result)
 
+#*** MODEL FACTORY PROVIDING A TRAINED MODEL INSTEAD OF A RANDOM INITIALIZATION ***
+def model_init():
+  return model
+
 #*** READ DOCUMENT DATASET ***
 if not lazy:
   train_dataset = NewsCrawlDataset(config.train_files, doc_split=True)
@@ -274,6 +278,7 @@ long_trainer = TrainerClass(
   data_collator=long_collator,
   train_dataset=train_dataset,
   eval_dataset =valid_dataset,
+  model_init=model_init,
 )
 
 print('*** Commencing long pretraining ***')

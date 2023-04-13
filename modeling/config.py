@@ -32,7 +32,7 @@ def get_config():
     'mixed_precision' : False,
     'eval_accumulation_steps' : 1,
     'short_max_len' : 128,
-    'long_max_len' : 8192, #None,
+    'long_max_len' : 4096, #None,
 
     #Dropout and epsilon for clamping divisions
     'attention_dropout_rate' : 0.0,
@@ -41,7 +41,7 @@ def get_config():
 
     #Training params
     'short_base_lr' : 1e-3,
-    'long_base_lr'  : 1e-3,
+    'long_base_lr'  : 5e-4,
     'wd' : 0.01,
     'betas' : (0.9, 0.98),
 
