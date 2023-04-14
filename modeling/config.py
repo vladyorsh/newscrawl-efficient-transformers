@@ -28,8 +28,8 @@ def get_config():
     'mlm_mask_prob' : 0.15,
     
     #Memory control
-    'adafactor' : True,
-    'mixed_precision' : False,
+    'adafactor' : False,
+    'mixed_precision' : True,
     'eval_accumulation_steps' : 1,
     'short_max_len' : 128,
     'long_max_len' : 4096, #None,

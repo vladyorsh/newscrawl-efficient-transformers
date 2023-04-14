@@ -148,7 +148,6 @@ long_collator = get_lm_collator(
 common_args = {
   'do_train' : True, 'do_eval' : True, 'do_predict' : False,
   'evaluation_strategy' : 'steps', 'save_strategy' : 'steps',
-  #'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'weight_decay' : config.wd,
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
@@ -194,7 +193,7 @@ if not skip:
     valid_dataset = NewsCrawlDatasetLazy(config.valid_files, doc_split=False)
     test_dataset = None
   else:
-    train_dataset = NewsCrawlDataset(config.train_files, doc_split=False)
+    train_dataset = NewsCrawlDataset(config.train_files, doc_split=False, shuffle=False)
     valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=False)
     test_dataset = None
 
@@ -230,7 +229,7 @@ else:
 
 #*** READ DOCUMENT DATASET ***
 if not lazy:
-  train_dataset = NewsCrawlDataset(config.train_files, doc_split=True)
+  train_dataset = NewsCrawlDataset(config.train_files, doc_split=True, shuffle=False)
   valid_dataset = NewsCrawlDataset(config.valid_files, doc_split=True)
 else:
   train_dataset.doc_split = False
