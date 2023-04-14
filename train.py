@@ -45,33 +45,7 @@ def extend_with_rootdir(paths):
   else:
     return os.path.join(config.root_dir, paths)
 
-#*** GET DATA ***
-'''
-print('Parsing train dataset')
-if os.path.exists(config.train_processed_path):
-  train_path = extend_with_rootdir(config.train_processed_path)
-  train_dataset = NewsCrawlDataset.load(train_path)
-else:
-  print('Creating train index from scratch')
-  train_dataset = NewsCrawlDataset(config.train_files)
 
-print('Parsing valid dataset')
-if os.path.exists(config.valid_processed_path):
-  valid_path = extend_with_rootdir(config.valid_processed_path)
-  valid_dataset = NewsCrawlDataset.load(valid_path)
-else:
-  print('Creating valid index from scratch')
-  valid_dataset = NewsCrawlDataset(config.valid_files)
-
-
-test_dataset = None
-'''
-
-#if config.test_files:
-#  print('Parsing test dataset')
-#  test_path = extend_with_rootdir(config.test_processed_path)
-#  if os.path.exists(test_path):
-#    test_dataset = NewsCrawlDataset.load(test_path)
 
 #*** GET TOKENIZER ***
 #If cannot retrieve, train new
@@ -138,7 +112,7 @@ else:
   short_batch_size = max(2, int(min_memory_available * 512 / config.short_max_len / scaling))
   long_batch_size  = max(2, int(short_batch_size * config.short_max_len / config.long_max_len))
 
-short_accum_steps = math.ceil(config.short_full_batch_size // short_batch_size / device_count)
+short_accum_steps = math.floor(config.short_full_batch_size // short_batch_size / device_count)
 long_accum_steps  = math.ceil(config.long_full_batch_size  // long_batch_size  / device_count)
 
 print(f'Estimated per-device batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
@@ -173,12 +147,12 @@ long_collator = get_lm_collator(
 
 common_args = {
   'do_train' : True, 'do_eval' : True, 'do_predict' : False,
-  'evaluation_strategy' : 'steps',
+  'evaluation_strategy' : 'steps', 'save_strategy' : 'steps',
   #'gradient_accumulation_steps' : config.grad_accumulation_steps,
   'weight_decay' : config.wd,
   'logging_first_step' : True, 'logging_steps' : config.eval_steps, 'save_steps' : config.eval_steps,
   'save_total_limit' : config.save_total_limit, 'eval_steps' : None,
-  'load_best_model_at_end' : True,
+#  'load_best_model_at_end' : True, 'greater_is_better' : False,
   'overwrite_output_dir' : True,
   'fp16' : config.mixed_precision,
   'optim' : 'adafactor' if config.adafactor else 'adam',
@@ -245,6 +219,7 @@ if not skip:
       short_trainer.train()
     else:
       short_trainer.train(args.short)
+    torch.save(model.state_dict(), 'backup_short_checkpoint.pth')
   else:
     print('*** Long checkpoint found, skipping short pretraining ***')
 else:
@@ -252,10 +227,6 @@ else:
   checkpoint = torch.load(os.path.join(args.short, 'pytorch_model.bin'))
   result = model.load_state_dict(checkpoint, True)
   print('Checkpoint loaded with result', result)
-
-#*** MODEL FACTORY PROVIDING A TRAINED MODEL INSTEAD OF A RANDOM INITIALIZATION ***
-def model_init():
-  return model
 
 #*** READ DOCUMENT DATASET ***
 if not lazy:
@@ -278,7 +249,6 @@ long_trainer = TrainerClass(
   data_collator=long_collator,
   train_dataset=train_dataset,
   eval_dataset =valid_dataset,
-  model_init=model_init,
 )
 
 print('*** Commencing long pretraining ***')

@@ -4,6 +4,7 @@ import linecache
 import base64
 import pickle
 import gc
+import numpy as np
 
 from tokenizers import normalizers, pre_tokenizers, models, Tokenizer
 
@@ -15,7 +16,7 @@ from tokenizers.trainers import UnigramTrainer, BpeTrainer, WordPieceTrainer
 from transformers import PreTrainedTokenizerFast
 
 class NewsCrawlDataset(torch.utils.data.Dataset):
-  def __init__(self, files, doc_split=True):
+  def __init__(self, files, doc_split=True, shuffle=True):
     self.filenames = files
     self.doc_split = doc_split
 
@@ -33,10 +34,14 @@ class NewsCrawlDataset(torch.utils.data.Dataset):
             line = line.strip().splitlines()
             line = [ s for s in line if s ]
             self.items.extend(line)
+    self.indices = list(range(len(self)))
+    if shuffle:
+      self.indices = np.random.permutation(len(self))
+
     print('Dataset created,', len(self), 'lines')
 
   def __getitem__(self, idx):
-    return self.items[idx]
+    return self.items[self.indices[idx]]
 
   def __len__(self):
     return len(self.items)

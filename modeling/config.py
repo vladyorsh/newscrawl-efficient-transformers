@@ -53,7 +53,7 @@ def get_config():
     'short_eval_steps' : int(3e3), #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : int(1.5e4),   #If set, overrides epochs
-    'long_eval_steps' : int(1e3), #If set, overrides maximum amount of evaluation steps
+    'long_eval_steps' : int(5e2), #If set, overrides maximum amount of evaluation steps
     
     'short_warmup_steps' : int(3e4), #Linear warmup steps
     'long_warmup_steps' : int(7.5e3),
