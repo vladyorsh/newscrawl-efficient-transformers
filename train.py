@@ -154,7 +154,7 @@ common_args = {
 #  'load_best_model_at_end' : True, 'greater_is_better' : False,
   'overwrite_output_dir' : True,
   'fp16' : config.mixed_precision,
-  'optim' : 'adafactor' if config.adafactor else 'adam',
+  'adafactor': config.adafactor,
    'adam_beta1' : config.betas[0], 'adam_beta2' : config.betas[1],
   'eval_accumulation_steps' : config.eval_accumulation_steps,
   'data_seed' : 42,
