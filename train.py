@@ -55,6 +55,10 @@ if tok_train_files:
   tok_train_files = extend_with_rootdir(tok_train_files)
 tok_path = extend_with_rootdir(config.tokenizer_name)
 
+print('--------------------')
+print(config.d)
+print('--------------------')
+
 print('Getting tokenizer from', tok_path)
 try:
   tokenizer = get_tokenizer(tok_path)
@@ -115,6 +119,7 @@ else:
 short_accum_steps = math.floor(config.short_full_batch_size // short_batch_size / device_count)
 long_accum_steps  = math.ceil(config.long_full_batch_size  // long_batch_size  / device_count)
 
+print(f'Training {'encoder' if is_encoder else 'decoder'}.')
 print(f'Estimated per-device batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
 #*** CREATE MODEL ***

@@ -3,6 +3,8 @@ class StaticAttrDict:
     self.d = d
   
   def __getattr__(self, name):
+    if name == 'd':
+      return self.d
     return self.d.get(name, None)
 
   def __getitem__(self, key):
@@ -50,7 +52,7 @@ def get_config():
 
     'short_train_epochs' : 3.0,
     'short_max_steps' : int(6e4),   #If set, overrides epochs
-    'short_eval_steps' : int(3e3), #If set, overrides maximum amount of evaluation steps
+    'short_eval_steps' : int(1.5e3), #If set, overrides maximum amount of evaluation steps
     'long_train_epochs' : 3.0,
     'long_max_steps' : int(1.5e4),   #If set, overrides epochs
     'long_eval_steps' : int(5e2), #If set, overrides maximum amount of evaluation steps
@@ -60,7 +62,7 @@ def get_config():
 
     'eval_steps' : 2000, #Log, save and eval every ... steps
 
-    'save_total_limit' : 20, #Override older checkpoints if there's more than ...
+    'save_total_limit' : 30, #Override older checkpoints if there's more than ...
 
     #Combined model
     'use_embeddings' : 'decoder',
