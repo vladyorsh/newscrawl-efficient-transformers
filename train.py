@@ -116,10 +116,10 @@ else:
   short_batch_size = max(2, int(min_memory_available * 512 / config.short_max_len / scaling))
   long_batch_size  = max(2, int(short_batch_size * config.short_max_len / config.long_max_len))
 
-short_accum_steps = math.floor(config.short_full_batch_size // short_batch_size / device_count)
+short_accum_steps = max(1, math.floor(config.short_full_batch_size // short_batch_size / device_count))
 long_accum_steps  = math.ceil(config.long_full_batch_size  // long_batch_size  / device_count)
 
-print(f'Training {'encoder' if is_encoder else 'decoder'}.')
+print(f'Training', 'encoder' if is_encoder else 'decoder')
 print(f'Estimated per-device batch sizes: {short_batch_size} and {long_batch_size} for sentence and document level splits respectively')
 
 #*** CREATE MODEL ***
